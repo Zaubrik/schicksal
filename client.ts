@@ -8,7 +8,7 @@ import { validateResponse, validateRpcSuccess } from "./validation.ts";
 type Resource = string | URL;
 type CreateRequestOptions = { jwt?: string; headers?: Headers };
 
-export function createFetchRequest(
+function createFetchRequest(
   resource: Resource,
   rpcRequestOrBatch: RpcRequest | RpcBatchRequest,
   options: CreateRequestOptions = {},
