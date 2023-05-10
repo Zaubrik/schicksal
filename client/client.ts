@@ -1,4 +1,4 @@
-import { JsonValue, RpcBatchRequest, RpcRequest } from "./rpc_types.ts";
+import { JsonValue, RpcBatchRequest, RpcRequest } from "../rpc_types.ts";
 import {
   createRequest as createRpcRequest,
   type CreateRequestInput,

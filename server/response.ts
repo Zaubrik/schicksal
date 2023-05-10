@@ -9,8 +9,6 @@ export type Options = {
   headers?: Headers;
   // include or don't include server side error messages in response:
   publicErrorStack?: boolean;
-  // enable 'subscribe', 'emit' and 'unsubscribe' (only ws):
-  enableInternalMethods?: boolean;
   // for jwt verification:
   auth?: {
     key?: CryptoKey;
@@ -20,25 +18,22 @@ export type Options = {
   };
 };
 
-export async function respond(
-  methods: Methods,
-  req: Request,
-  {
-    headers = new Headers(),
-    publicErrorStack = false,
-    enableInternalMethods = false,
-    auth = {},
-  }: Options = {},
-): Promise<Response> {
-  return await handleHttpRequest(
-    req,
-    methods,
-    {
-      headers,
-      publicErrorStack,
-      enableInternalMethods,
-      auth,
-    },
-    req.headers.get("Authorization"),
-  );
+export async function respond(methods: Methods, {
+  headers = new Headers(),
+  publicErrorStack = false,
+  auth = {},
+}: Options = {}) {
+  return (request: Request): Promise<Response> => {
+    return await handleHttpRequest(
+      request,
+      methods,
+      {
+        headers,
+        publicErrorStack,
+        enableInternalMethods,
+        auth,
+      },
+      request.headers.get("Authorization"),
+    );
+  };
 }

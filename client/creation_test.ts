@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from "./test_deps.ts";
+import { assertEquals, assertNotEquals } from "../test_deps.ts";
 import { createRequest } from "./creation.ts";
 
 Deno.test("create request object", function (): void {

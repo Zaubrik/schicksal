@@ -1,4 +1,4 @@
-import { assertEquals } from "./test_deps.ts";
+import { assertEquals } from "../test_deps.ts";
 import { createFetchRequest } from "./client.ts";
 import { createRequest as createRpcRequest } from "./creation.ts";
 
