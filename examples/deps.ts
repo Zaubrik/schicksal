@@ -1,4 +1,4 @@
-export { respond } from "../../server/mod.ts";
+export { respond } from "../server/mod.ts";
 export {
   compose,
   Context,
@@ -10,6 +10,7 @@ export {
   enableCors,
   fallBack,
   logger,
-} from "../../../portal/middlewares/mod.ts";
+  respondRpc,
+} from "../../portal/middlewares/mod.ts";
 // } from "https://dev.zaubrik.com/portal@v0.1.9/middlewares/mod.ts";
 export { importMetaResolveFs } from "https://dev.zaubrik.com/portal@v0.1.9/util/mod.ts";

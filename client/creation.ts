@@ -1,4 +1,4 @@
-import { RpcRequest } from "./rpc_types.ts";
+import { RpcRequest } from "../rpc_types.ts";
 
 export type CreateRequestInput = {
   method: string;

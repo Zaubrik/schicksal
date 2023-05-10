@@ -8,7 +8,7 @@ import { validateResponse, validateRpcSuccess } from "./validation.ts";
 type Resource = string | URL;
 type CreateRequestOptions = { jwt?: string; headers?: Headers };
 
-function createFetchRequest(
+export function createFetchRequest(
   resource: Resource,
   rpcRequestOrBatch: RpcRequest | RpcBatchRequest,
   options: CreateRequestOptions = {},
@@ -41,8 +41,8 @@ type MakeRpcCallOptions = CreateRequestOptions & {
 export function makeRpcCall(resource: Resource) {
   return async (
     rpcRequestInput: CreateRequestInput,
-    options: MakeRpcCallOptions = {},
-  ) => {
+    options: Omit<MakeRpcCallOptions, "hasRpcResponseBasis"> = {},
+  ): Promise<JsonValue> => {
     const rpcResponse = validateResponse(
       await fetchResponse(
         createFetchRequest(
@@ -53,10 +53,6 @@ export function makeRpcCall(resource: Resource) {
       ),
       options.isNotification,
     );
-
-    if (options.hasRpcResponseBasis) {
-      return rpcResponse;
-    }
 
     if (validateRpcSuccess(rpcResponse)) {
       return rpcResponse.result;

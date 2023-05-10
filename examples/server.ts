@@ -7,7 +7,7 @@ import {
   importMetaResolveFs,
   listen,
   logger,
-  respond,
+  respondRpc,
 } from "./deps.ts";
 
 const resolveModuleFs = importMetaResolveFs(import.meta.url);
@@ -23,20 +23,35 @@ function makeName(
   return `${firstName} ${lastName}`;
 }
 
+function animalsMakeNoise(noise: string[]) {
+  return noise.map((el) => el.toUpperCase()).join(" ");
+}
+
+async function return200(ctx: Context) {
+  ctx.response = new Response();
+  return ctx;
+}
+
 const methods = {
   add: add,
   makeName: makeName,
+  animalsMakeNoise: animalsMakeNoise,
 };
+const options = {};
 
 const routePost = createRoute("POST");
-const route = routePost({ pathname: "*" });
-
-const handler = createHandler(Context)(route)(fallBack)(
+const routeOption = createRoute("OPTIONS")({ pathname: "*" })(return200);
+const route = routePost({ pathname: "*" })(respondRpc(methods, options));
+const handler = createHandler(Context)(route, routeOption)(fallBack)(
   await logger(
     resolveModuleFs("./log/access.log"),
     isDevelopment,
   ),
-  enableCors({ allowedOrigins: "*" }),
+  enableCors({
+    allowedOrigins: "*",
+    allowedMethods: "POST",
+    allowedHeaders: "Authorization, Content-Type",
+  }),
 );
 
 await listen(handler)({ port: 8080 });

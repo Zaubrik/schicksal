@@ -18,19 +18,18 @@ export type Options = {
   };
 };
 
-export async function respond(methods: Methods, {
+export function respond(methods: Methods, {
   headers = new Headers(),
   publicErrorStack = false,
   auth = {},
 }: Options = {}) {
-  return (request: Request): Promise<Response> => {
+  return async (request: Request): Promise<Response> => {
     return await handleHttpRequest(
       request,
       methods,
       {
         headers,
         publicErrorStack,
-        enableInternalMethods,
         auth,
       },
       request.headers.get("Authorization"),

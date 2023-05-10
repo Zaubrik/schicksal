@@ -1,4 +1,4 @@
-import { assertEquals } from "./test_deps.ts";
+import { assertEquals } from "../test_deps.ts";
 import { validateResponse } from "./validation.ts";
 
 Deno.test("validate response object", function (): void {
