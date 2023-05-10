@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals, assertThrows } from "../test_deps.ts";
+import { assertEquals } from "../test_deps.ts";
 import { validateRequest } from "./validation.ts";
 
 const methods = {

@@ -1,9 +1,4 @@
-import {
-  assertEquals,
-  assertNotEquals,
-  create,
-  Payload,
-} from "../test_deps.ts";
+import { assertEquals, create, Payload } from "../test_deps.ts";
 import { respond } from "./response.ts";
 import { CustomError } from "./custom_error.ts";
 
@@ -16,6 +11,7 @@ function removeWhiteSpace(str: string) {
 }
 
 const methods = {
+  // deno-lint-ignore no-explicit-any
   subtract: (input: any) =>
     Array.isArray(input)
       ? input[0] - input[1]
@@ -220,7 +216,6 @@ Deno.test("rpc call with publicErrorStack set to true", async function (): Promi
   void
 > {
   const sentToServer = '{"jsonrpc": "2.0", "method": "throwError", "id": 3}';
-  const sentToClient = '{"jsonrpc": "2.0", "result": 19, "id": 3}';
 
   assertEquals(
     typeof JSON.parse(

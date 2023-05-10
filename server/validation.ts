@@ -49,6 +49,7 @@ function isRpcId(input: unknown): input is RpcId {
   }
 }
 
+// deno-lint-ignore no-explicit-any
 function isObject(obj: unknown): obj is Record<string, any> {
   return (
     obj !== null && typeof obj === "object" && Array.isArray(obj) === false
@@ -82,6 +83,7 @@ export function validateRequest(
 }
 
 export function validateRpcRequestObject(
+  // deno-lint-ignore no-explicit-any
   decodedBody: any,
   methods: Methods,
 ): ValidationObject {

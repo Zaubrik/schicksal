@@ -27,7 +27,7 @@ function animalsMakeNoise(noise: string[]) {
   return noise.map((el) => el.toUpperCase()).join(" ");
 }
 
-async function return200(ctx: Context) {
+function return200(ctx: Context) {
   ctx.response = new Response();
   return ctx;
 }

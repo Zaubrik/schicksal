@@ -2,6 +2,7 @@ import { handleHttpRequest } from "./http.ts";
 import type { JsonValue } from "../rpc_types.ts";
 
 export type Methods = {
+  // deno-lint-ignore no-explicit-any
   [method: string]: (...arg: any[]) => JsonValue | Promise<JsonValue>;
 };
 export type Options = {
