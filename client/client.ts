@@ -41,6 +41,8 @@ type MakeRpcCallOptions = CreateRequestOptions & {
 export function makeRpcCall(resource: Resource) {
   return async (
     rpcRequestInput: CreateRequestInput,
+    // Adding `hasRpcResponseBasis` would change the return type and is not
+    // necessary because it only makes sense for batch rpc calls.
     options: Omit<MakeRpcCallOptions, "hasRpcResponseBasis"> = {},
   ): Promise<JsonValue> => {
     const rpcResponse = validateResponse(
