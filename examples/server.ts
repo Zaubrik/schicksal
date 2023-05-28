@@ -19,8 +19,9 @@ function add([a, b]: [number, number]) {
 
 function makeName(
   { firstName, lastName }: { firstName: string; lastName: string },
+  { text }: { text: string },
 ) {
-  return `${firstName} ${lastName}`;
+  return `${text} ${firstName} ${lastName}`;
 }
 
 function animalsMakeNoise(noise: string[]) {
@@ -37,14 +38,14 @@ const methods = {
   makeName: makeName,
   animalsMakeNoise: animalsMakeNoise,
 };
-const options = {};
+const options = { args: { text: "My name is" } };
 
 const routePost = createRoute("POST");
 const routeOption = createRoute("OPTIONS")({ pathname: "*" })(return200);
 const route = routePost({ pathname: "*" })(respondRpc(methods, options));
 const handler = createHandler(Context)(route, routeOption)(fallBack)(
   await logger(
-    resolveModuleFs("./log/access.log"),
+    resolveModuleFs("./.log/access.log"),
     isDevelopment,
   ),
   enableCors({

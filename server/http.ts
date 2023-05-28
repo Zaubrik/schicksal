@@ -20,21 +20,12 @@ export async function handleHttpRequest(
     return new Response(null, { status: 204, headers: headers });
   } else {
     headers.append("content-type", "application/json");
-    return ("error" in rpcResponseOrBatchOrNull &&
-        rpcResponseOrBatchOrNull.error.code === -32700)
-      ? new Response(
-        JSON.stringify(rpcResponseOrBatchOrNull),
-        {
-          status: 400,
-          headers,
-        },
-      )
-      : new Response(
-        JSON.stringify(rpcResponseOrBatchOrNull),
-        {
-          status: 200,
-          headers,
-        },
-      );
+    return new Response(
+      JSON.stringify(rpcResponseOrBatchOrNull),
+      {
+        status: 200,
+        headers,
+      },
+    );
   }
 }
