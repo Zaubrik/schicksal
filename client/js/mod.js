@@ -71,9 +71,6 @@ async function fetchResponse(request) {
 function makeRpcCall(resource) {
     return async (rpcRequestInput, options = {})=>{
         const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, createRequest(rpcRequestInput), options)), options.isNotification);
-        if (options.hasRpcResponseBasis) {
-            return rpcResponse;
-        }
         if (validateRpcSuccess(rpcResponse)) {
             return rpcResponse.result;
         } else {
@@ -107,6 +104,7 @@ function makeBatchRpcCall(resource) {
         }
     };
 }
+export { createFetchRequest as createFetchRequest };
 export { makeRpcCall as makeRpcCall };
 export { makeBatchRpcCall as makeBatchRpcCall };
 
