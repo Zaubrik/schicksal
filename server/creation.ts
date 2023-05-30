@@ -1,12 +1,6 @@
 import { CustomError } from "./custom_error.ts";
 import { verifyJwt } from "./auth.ts";
-import type {
-  JsonObject,
-  RpcBatchResponse,
-  RpcError,
-  RpcResponse,
-  RpcSuccess,
-} from "../rpc_types.ts";
+import type { RpcBatchResponse, RpcResponse } from "../rpc_types.ts";
 import type { ValidationObject } from "./validation.ts";
 import type { Methods, Options } from "./response.ts";
 import type { Payload } from "./deps.ts";
@@ -14,7 +8,7 @@ import type { Payload } from "./deps.ts";
 export type CreationInput = {
   validationObject: ValidationObject;
   methods: Methods;
-  options: Required<Options>;
+  options: Options;
 };
 export type RpcResponseOrBatchOrNull =
   | RpcResponse
@@ -24,16 +18,19 @@ type RpcResponseOrNull = RpcResponse | null;
 type RpcBatchResponseOrNull = RpcBatchResponse | null;
 
 async function executeMethods(
-  { validationObject, methods, options }: CreationInput,
+  { validationObject, methods, options, payload }: CreationInput & {
+    payload?: Payload;
+  },
 ): Promise<ValidationObject> {
   if (validationObject.isError) return validationObject;
   try {
+    const additionalArgument = { ...options.args, payload };
+    const method = methods[validationObject.method];
     return {
       ...validationObject,
-      result: await methods[validationObject.method](
-        validationObject.params,
-        options.args,
-      ),
+      result: Object.keys(additionalArgument).length === 0
+        ? await method(validationObject.params)
+        : await method(validationObject.params, additionalArgument),
     };
   } catch (err) {
     if (err instanceof CustomError) {
@@ -55,27 +52,28 @@ async function executeMethods(
   }
 }
 
-async function cleanBatch(
-  batch: Promise<RpcResponseOrNull>[],
-): Promise<RpcBatchResponseOrNull> {
-  const batchResponse = (await Promise.all(batch)).filter((
-    obj: RpcResponseOrNull,
-  ): obj is RpcResponse => obj !== null);
-  return batchResponse.length > 0 ? batchResponse : null;
-}
-
-function createRpcResponseObject(
-  obj:
-    | Omit<RpcSuccess, "jsonrpc">
-    | (RpcError & { id: RpcSuccess["id"] }),
-): RpcResponse {
-  return "result" in obj
-    ? {
+async function createRpcResponse(
+  { validationObject, methods, options, payload }: CreationInput & {
+    payload?: Payload;
+  },
+): Promise<RpcResponseOrNull> {
+  const obj: ValidationObject = await executeMethods(
+    {
+      validationObject,
+      payload,
+      methods,
+      options,
+    },
+  );
+  if ("result" in obj && obj.id !== undefined) {
+    return {
       jsonrpc: "2.0",
-      result: obj.result,
+      // `result` must be a JSON value
+      result: obj.result === undefined ? null : obj.result,
       id: obj.id,
-    }
-    : {
+    };
+  } else if (obj.isError && obj.id !== undefined) {
+    return {
       jsonrpc: "2.0",
       error: {
         code: obj.code,
@@ -84,61 +82,6 @@ function createRpcResponseObject(
       },
       id: obj.id,
     };
-}
-
-function addJwtPayload(
-  obj: ValidationObject,
-  jwtPayload?: Payload,
-  { publicErrorStack }: Options = {},
-): ValidationObject {
-  if (obj.isError) {
-    return obj;
-  }
-  if (!jwtPayload) {
-    return obj;
-  }
-  if (Array.isArray(obj.params)) {
-    return {
-      code: -32010,
-      message: "Server error",
-      id: obj.id,
-      data: publicErrorStack
-        ? new Error("The method requires named parameters.").stack
-        : undefined,
-      isError: true,
-    };
-  }
-  obj.params = {
-    ...obj.params,
-    jwtPayload: jwtPayload as JsonObject,
-  };
-  return obj;
-}
-async function createRpcResponse(
-  { validationObject, methods, options, jwtPayload }: CreationInput & {
-    jwtPayload?: Payload;
-  },
-): Promise<RpcResponseOrNull> {
-  const obj: ValidationObject = await executeMethods(
-    {
-      validationObject: addJwtPayload(validationObject, jwtPayload, options),
-      methods,
-      options,
-    },
-  );
-  if (!obj.isError && obj.id !== undefined) {
-    return createRpcResponseObject({
-      // `result` must be a JSON value
-      result: obj.result === undefined ? null : obj.result,
-      id: obj.id,
-    });
-  } else if (obj.isError && obj.id !== undefined) {
-    return createRpcResponseObject({
-      code: obj.code,
-      message: obj.message,
-      data: obj.data,
-      id: obj.id,
-    });
   } else {
     return null;
   }
@@ -147,7 +90,7 @@ async function createRpcResponse(
 export async function createRpcResponseOrBatch(
   validationObjectOrBatch: ValidationObject | ValidationObject[],
   methods: Methods,
-  options: Required<Options>,
+  options: Options,
   authHeader: string | null,
 ): Promise<RpcResponseOrBatchOrNull> {
   return Array.isArray(validationObjectOrBatch)
@@ -171,4 +114,13 @@ export async function createRpcResponseOrBatch(
         authHeader,
       }),
     );
+}
+
+async function cleanBatch(
+  batch: Promise<RpcResponseOrNull>[],
+): Promise<RpcBatchResponseOrNull> {
+  const batchResponse = (await Promise.all(batch)).filter((
+    obj: RpcResponseOrNull,
+  ): obj is RpcResponse => obj !== null);
+  return batchResponse.length > 0 ? batchResponse : null;
 }

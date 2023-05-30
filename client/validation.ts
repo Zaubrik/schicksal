@@ -36,7 +36,7 @@ export function validateResponse(
     return {
       jsonrpc: "2.0",
       error: {
-        code: -32091,
+        code: 0,
         message: "The notification contains unexpected data.",
       },
       id: null,
@@ -52,7 +52,7 @@ export function validateResponse(
   return {
     jsonrpc: "2.0",
     error: {
-      code: -32090,
+      code: 0,
       message: "Invalid JSON-RPC 2.0 response.",
     },
     id: null,

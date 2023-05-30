@@ -28,8 +28,8 @@ const methods = {
       "details": "error details",
     });
   },
-  login: ({ jwtPayload }: { jwtPayload: Payload }) => {
-    return jwtPayload.user as string;
+  login: (_: unknown, { payload }: { payload: Payload }) => {
+    return payload.user as string;
   },
 };
 

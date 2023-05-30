@@ -1,6 +1,7 @@
 import { createRpcResponseOrBatch } from "./creation.ts";
 import { validateRequest } from "./validation.ts";
 import type { JsonValue } from "../rpc_types.ts";
+import type { VerifyOptions } from "./deps.ts";
 
 export type Methods = {
   // deno-lint-ignore no-explicit-any
@@ -15,26 +16,21 @@ export type Options = {
   args?: Record<string, unknown>;
   // for jwt verification:
   auth?: {
-    key?: CryptoKey;
-    methods?: (keyof Methods)[];
+    key: CryptoKey;
+    methods?: (keyof Methods)[] | RegExp;
     allMethods?: boolean;
-    jwt?: string | null;
+    options?: VerifyOptions;
   };
 };
 
-export function respond(methods: Methods, {
-  headers = new Headers(),
-  publicErrorStack = false,
-  auth = {},
-  args = {},
-}: Options = {}) {
+export function respond(methods: Methods, options: Options = {}) {
   return async (request: Request): Promise<Response> => {
     const authHeader = request.headers.get("Authorization");
     const validationObjectOrBatch = validateRequest(
       await request.text(),
       methods,
     );
-    const options = { headers, publicErrorStack, auth, args };
+    const headers = options.headers ?? new Headers();
     const rpcResponseOrBatchOrNull = await createRpcResponseOrBatch(
       validationObjectOrBatch,
       methods,
@@ -44,7 +40,7 @@ export function respond(methods: Methods, {
     if (rpcResponseOrBatchOrNull === null) {
       return new Response(null, { status: 204, headers });
     } else {
-      options.headers.append("content-type", "application/json");
+      headers.append("content-type", "application/json");
       return new Response(
         JSON.stringify(rpcResponseOrBatchOrNull),
         {

@@ -97,7 +97,7 @@ export function makeBatchRpcCall(resource: Resource) {
       return [{
         jsonrpc: "2.0",
         error: {
-          code: -32092,
+          code: 0,
           message: "Invalid JSON-RPC 2.0 batch response.",
         },
         id: null,

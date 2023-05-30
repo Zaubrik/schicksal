@@ -16,7 +16,7 @@ Deno.test("validate response object", function (): void {
     {
       jsonrpc: "2.0",
       error: {
-        code: -32090,
+        code: 0,
         message: "Invalid JSON-RPC 2.0 response.",
       },
       id: null,
@@ -27,7 +27,7 @@ Deno.test("validate response object", function (): void {
     {
       jsonrpc: "2.0",
       error: {
-        code: -32090,
+        code: 0,
         message: "Invalid JSON-RPC 2.0 response.",
       },
       id: null,
@@ -43,7 +43,7 @@ Deno.test("validate response object", function (): void {
     {
       jsonrpc: "2.0",
       error: {
-        code: -32090,
+        code: 0,
         message: "Invalid JSON-RPC 2.0 response.",
       },
       id: null,
@@ -58,7 +58,7 @@ Deno.test("validate response object", function (): void {
     {
       jsonrpc: "2.0",
       error: {
-        code: -32090,
+        code: 0,
         message: "Invalid JSON-RPC 2.0 response.",
       },
       id: null,
@@ -84,7 +84,7 @@ Deno.test("validate response object", function (): void {
     {
       jsonrpc: "2.0",
       error: {
-        code: -32091,
+        code: 0,
         message: "The notification contains unexpected data.",
       },
       id: null,
