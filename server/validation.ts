@@ -1,4 +1,4 @@
-import { Methods } from "./response.ts";
+import { type Methods } from "./response.ts";
 
 import type {
   JsonArray,

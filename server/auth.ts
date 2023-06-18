@@ -1,10 +1,20 @@
-import { verify } from "./deps.ts";
-import type { Payload } from "./deps.ts";
+import { checkVersionAndVerify, type Payload, verify } from "./deps.ts";
 import type { CreationInput } from "./creation.ts";
 
+export function getJwtFromBearer(headers: Headers): string {
+  const authHeader = headers.get("Authorization");
+  if (authHeader === null) {
+    throw new Error("No 'Authorization' header.");
+  } else if (!authHeader.startsWith("Bearer ") || authHeader.length <= 7) {
+    throw new Error("Invalid 'Authorization' header.");
+  } else {
+    return authHeader.slice(7);
+  }
+}
+
 export async function verifyJwt(
-  { validationObject, methods, options, authHeader }: CreationInput & {
-    authHeader: string | null;
+  { validationObject, methods, options, headers }: CreationInput & {
+    headers: Headers;
   },
 ): Promise<CreationInput & { payload?: Payload }> {
   if (validationObject.isError) return { validationObject, methods, options };
@@ -20,25 +30,24 @@ export async function verifyJwt(
         if (!(options.auth.key instanceof CryptoKey)) {
           throw new Error("Authentication requires a CryptoKey.");
         }
-        if (
-          !authHeader ||
-          !authHeader.startsWith("Bearer ") ||
-          authHeader.length <= 7
-        ) {
-          throw new Error("No Authorization Header, no Bearer or no token.");
-        } else {
-          const payload = await verify(
-            authHeader.slice(7),
+        const jwt = getJwtFromBearer(headers);
+        const payload = options.auth.options?.keyUrl
+          ? await checkVersionAndVerify(
+            jwt,
+            options.auth.key,
+            options.auth.options,
+          )
+          : await verify(
+            jwt,
             options.auth.key,
             options.auth.options,
           );
-          return { validationObject, methods, options, payload };
-        }
+        return { validationObject, methods, options, payload };
       } catch (err) {
         return {
           validationObject: {
             code: -32020,
-            message: "Server error",
+            message: "Authentication with JWT failed.",
             id: validationObject.id,
             data: options.publicErrorStack ? err.stack : undefined,
             isError: true,

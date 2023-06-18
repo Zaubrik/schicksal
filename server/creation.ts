@@ -91,7 +91,7 @@ export async function createRpcResponseOrBatch(
   validationObjectOrBatch: ValidationObject | ValidationObject[],
   methods: Methods,
   options: Options,
-  authHeader: string | null,
+  headers: Headers,
 ): Promise<RpcResponseOrBatchOrNull> {
   return Array.isArray(validationObjectOrBatch)
     ? await cleanBatch(
@@ -101,7 +101,7 @@ export async function createRpcResponseOrBatch(
             validationObject,
             methods,
             options,
-            authHeader,
+            headers,
           }),
         )
       ),
@@ -111,7 +111,7 @@ export async function createRpcResponseOrBatch(
         validationObject: validationObjectOrBatch,
         methods,
         options,
-        authHeader,
+        headers,
       }),
     );
 }

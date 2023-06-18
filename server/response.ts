@@ -12,7 +12,7 @@ export type Options = {
   headers?: Headers;
   // include or don't include server side error messages in response:
   publicErrorStack?: boolean;
-  // Additional arguments:
+  // Additional arguments ('payload' is reserved for jwt payload!):
   args?: Record<string, unknown>;
   // for jwt verification:
   auth?: {
@@ -25,7 +25,7 @@ export type Options = {
 
 export function respond(methods: Methods, options: Options = {}) {
   return async (request: Request): Promise<Response> => {
-    const authHeader = request.headers.get("Authorization");
+    const requestHeaders = request.headers;
     const validationObjectOrBatch = validateRequest(
       await request.text(),
       methods,
@@ -35,7 +35,7 @@ export function respond(methods: Methods, options: Options = {}) {
       validationObjectOrBatch,
       methods,
       options,
-      authHeader,
+      requestHeaders,
     );
     if (rpcResponseOrBatchOrNull === null) {
       return new Response(null, { status: 204, headers });
