@@ -2,6 +2,9 @@
 // deno-lint-ignore-file
 // This code was bundled using `deno bundle` and it's not recommended to edit it manually
 
+function generateId() {
+    return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
 function createRequest({ method , params , isNotification =false , id  }) {
     const rpcRequest = {
         jsonrpc: "2.0",
@@ -11,9 +14,6 @@ function createRequest({ method , params , isNotification =false , id  }) {
     id = isNotification ? undefined : id !== undefined ? id : generateId();
     id !== undefined && (rpcRequest.id = id);
     return rpcRequest;
-}
-function generateId() {
-    return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
 function validateRpcBasis(data) {
     return data?.jsonrpc === "2.0" && (typeof data.id === "number" || typeof data.id === "string" || data.id === null);
@@ -29,7 +29,7 @@ function validateResponse(data, isNotification) {
         return {
             jsonrpc: "2.0",
             error: {
-                code: -32091,
+                code: 0,
                 message: "The notification contains unexpected data."
             },
             id: null
@@ -45,7 +45,7 @@ function validateResponse(data, isNotification) {
     return {
         jsonrpc: "2.0",
         error: {
-            code: -32090,
+            code: 0,
             message: "Invalid JSON-RPC 2.0 response."
         },
         id: null
@@ -95,7 +95,7 @@ function makeBatchRpcCall(resource) {
                 {
                     jsonrpc: "2.0",
                     error: {
-                        code: -32092,
+                        code: 0,
                         message: "Invalid JSON-RPC 2.0 batch response."
                     },
                     id: null
