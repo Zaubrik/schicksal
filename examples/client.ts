@@ -1,6 +1,6 @@
 import { makeBatchRpcCall, makeRpcCall } from "../client/mod.ts";
 
-const call = makeRpcCall("http://localhost:8080");
+const call = makeRpcCall("http://localhost:8000");
 
 const r1 = await call({ method: "animalsMakeNoise", params: ["aaa", "bbb"] });
 const r2 = await call({
@@ -8,7 +8,7 @@ const r2 = await call({
   params: { firstName: "Joe", lastName: "Doe" },
 });
 
-const batchCall = makeBatchRpcCall("http://localhost:8080");
+const batchCall = makeBatchRpcCall("http://localhost:8000");
 
 const r3 = await batchCall([{
   method: "animalsMakeNoise",

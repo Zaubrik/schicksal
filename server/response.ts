@@ -18,7 +18,6 @@ export type Options = {
   auth?: {
     key: CryptoKey;
     methods?: (keyof Methods)[] | RegExp;
-    allMethods?: boolean;
     options?: VerifyOptions;
   };
 };

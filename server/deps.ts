@@ -1,6 +1,5 @@
-export { type Payload, verify } from "https://deno.land/x/djwt@v2.8/mod.ts";
-
 export {
-  checkVersionAndVerify,
-  type Options as VerifyOptions,
-} from "../../portal/middlewares/auth.ts";
+  type Payload,
+  verify,
+  type VerifyOptions,
+} from "https://deno.land/x/djwt@v2.9/mod.ts";

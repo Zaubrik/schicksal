@@ -7,6 +7,10 @@ export type CreateRequestInput = {
   id?: RpcRequest["id"];
 };
 
+function generateId() {
+  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+}
+
 export function createRequest(
   { method, params, isNotification = false, id }: CreateRequestInput,
 ): RpcRequest {
@@ -18,8 +22,4 @@ export function createRequest(
   id = isNotification ? undefined : id !== undefined ? id : generateId();
   id !== undefined && (rpcRequest.id = id);
   return rpcRequest;
-}
-
-function generateId() {
-  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }

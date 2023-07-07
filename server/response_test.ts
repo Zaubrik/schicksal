@@ -268,7 +268,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
         auth: { key, methods: ["login"] },
       })(reqTwo)).text(),
       removeWhiteSpace(
-        '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Server error"}, "id": 3}',
+        '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
       ),
     );
   const reqThree = createReq(
@@ -277,10 +277,10 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   reqThree.headers.append("Authorization", `Bearer ${jwt.slice(1)}`);
   assertEquals(
     await (await respond(methods, {
-      auth: { key, methods: ["notify_hello"], allMethods: true },
+      auth: { key, methods: new RegExp(".+") },
     })(reqThree)).text(),
     removeWhiteSpace(
-      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Server error"}, "id": 3}',
+      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
     ),
   );
   const reqFour = createReq(
@@ -288,10 +288,10 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   );
   assertEquals(
     await (await respond(methods, {
-      auth: { key, methods: ["login"], allMethods: true },
+      auth: { key, methods: ["login"] },
     })(reqFour)).text(),
     removeWhiteSpace(
-      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Server error"}, "id": 3}',
+      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
     ),
   );
 });
