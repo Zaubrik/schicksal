@@ -55,3 +55,8 @@ const options = { args: { text: "My name is" } };
 
 Deno.serve(respond(methods, options));
 ```
+
+## Discord
+
+Feel free to ask questions and start discussions in our
+[discord server](https://discord.gg/6spYphKXAt).
