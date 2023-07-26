@@ -79,6 +79,7 @@ Deno.test("validate response object", function (): void {
       id: null,
     },
   );
+  assertEquals(validateResponse(undefined, true), undefined);
   assertEquals(
     validateResponse({ "jsonrpc": "2.0", "result": 19 }, true),
     {

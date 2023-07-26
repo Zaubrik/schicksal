@@ -31,16 +31,20 @@ function validateRpcFailure(data: any): data is RpcFailure {
 export function validateResponse(
   data: unknown,
   isNotification?: boolean,
-): RpcResponse {
-  if (isNotification && data !== undefined) {
-    return {
-      jsonrpc: "2.0",
-      error: {
-        code: 0,
-        message: "The notification contains unexpected data.",
-      },
-      id: null,
-    };
+): RpcResponse | undefined {
+  if (isNotification) {
+    if (data === undefined) {
+      return data;
+    } else {
+      return {
+        jsonrpc: "2.0",
+        error: {
+          code: 0,
+          message: "The notification contains unexpected data.",
+        },
+        id: null,
+      };
+    }
   }
   if (validateRpcBasis(data)) {
     if (validateRpcSuccess(data)) {

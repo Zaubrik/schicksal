@@ -33,30 +33,50 @@ async function fetchResponse(
   return text === "" ? undefined : JSON.parse(text);
 }
 
-type MakeRpcCallOptions = CreateRequestOptions & {
+type MakeRpcCallOrNotificationOptions = CreateRequestOptions & {
   isNotification?: boolean;
-  hasRpcResponseBasis?: boolean;
+};
+type MakeRpcCallOptions = CreateRequestOptions & {
+  isNotification?: false;
+};
+type MakeRpcNotificationOptions = CreateRequestOptions & {
+  isNotification: true;
 };
 
-export function makeRpcCall(resource: Resource) {
-  return async (
+type MakeRpcCallInnerFunction = {
+  (
     rpcRequestInput: CreateRequestInput,
-    // Adding `hasRpcResponseBasis` would change the return type and is not
-    // necessary because it only makes sense for batch rpc calls.
-    options: Omit<MakeRpcCallOptions, "hasRpcResponseBasis"> = {},
-  ): Promise<JsonValue> => {
+    options: MakeRpcNotificationOptions,
+  ): Promise<undefined>;
+  (
+    rpcRequestInput: CreateRequestInput,
+    options?: MakeRpcCallOptions,
+  ): Promise<JsonValue>;
+  (
+    rpcRequestInput: CreateRequestInput,
+    options: MakeRpcCallOrNotificationOptions,
+  ): Promise<JsonValue | undefined>;
+};
+
+// Adding `hasRpcResponseBasis` would change the return type and is not
+// necessary because it only makes sense for batch rpc calls.
+export function makeRpcCall(resource: Resource): MakeRpcCallInnerFunction {
+  // deno-lint-ignore no-explicit-any
+  return async (rpcRequestInput, options = {}): Promise<any> => {
+    const isNotification = options.isNotification;
     const rpcResponse = validateResponse(
       await fetchResponse(
         createFetchRequest(
           resource,
-          createRpcRequest(rpcRequestInput),
+          createRpcRequest({ ...rpcRequestInput, isNotification }),
           options,
         ),
       ),
       options.isNotification,
     );
-
-    if (validateRpcSuccess(rpcResponse)) {
+    if (rpcResponse === undefined) {
+      return rpcResponse;
+    } else if (validateRpcSuccess(rpcResponse)) {
       return rpcResponse.result;
     } else {
       throw rpcResponse.error;
@@ -64,25 +84,44 @@ export function makeRpcCall(resource: Resource) {
   };
 }
 
+type MakeBatchRpcCallOrNotificationOptions = CreateRequestOptions & {
+  isNotification?: boolean;
+  hasRpcResponseBasis?: boolean;
+};
+
 export function makeBatchRpcCall(resource: Resource) {
   return async (
     rpcBatchRequestInput: CreateRequestInput[],
-    options: MakeRpcCallOptions = {},
+    options: MakeBatchRpcCallOrNotificationOptions = {},
   ) => {
+    const isNotification = options.isNotification;
     const rpcBatchResponse = await fetchResponse(
       createFetchRequest(
         resource,
-        rpcBatchRequestInput.map(createRpcRequest),
+        rpcBatchRequestInput.map((rpcRequestInput) =>
+          createRpcRequest({ ...rpcRequestInput, isNotification })
+        ),
         options,
       ),
     );
-    if (rpcBatchResponse === undefined && options.isNotification) {
-      return rpcBatchResponse;
+    if (isNotification) {
+      if (rpcBatchResponse === undefined) {
+        return rpcBatchResponse;
+      } else {
+        return [{
+          jsonrpc: "2.0",
+          error: {
+            code: 0,
+            message: "The batch of notifications contain unexpected data.",
+          },
+          id: null,
+        }];
+      }
     } else if (
       Array.isArray(rpcBatchResponse) && rpcBatchResponse.length > 0
     ) {
       const validatedRpcBatchResponse = rpcBatchResponse.map((rpcResponse) =>
-        validateResponse(rpcResponse, options.isNotification)
+        validateResponse(rpcResponse, isNotification)
       );
       if (options.hasRpcResponseBasis) {
         return validatedRpcBatchResponse;
@@ -90,7 +129,7 @@ export function makeBatchRpcCall(resource: Resource) {
         return validatedRpcBatchResponse.map((rpcResponse) =>
           validateRpcSuccess(rpcResponse)
             ? rpcResponse.result
-            : rpcResponse.error
+            : rpcResponse!.error
         );
       }
     } else {

@@ -25,15 +25,19 @@ function validateRpcFailure(data) {
     return typeof data?.error?.code === "number" && typeof data.error.message === "string";
 }
 function validateResponse(data, isNotification) {
-    if (isNotification && data !== undefined) {
-        return {
-            jsonrpc: "2.0",
-            error: {
-                code: 0,
-                message: "The notification contains unexpected data."
-            },
-            id: null
-        };
+    if (isNotification) {
+        if (data === undefined) {
+            return data;
+        } else {
+            return {
+                jsonrpc: "2.0",
+                error: {
+                    code: 0,
+                    message: "The notification contains unexpected data."
+                },
+                id: null
+            };
+        }
     }
     if (validateRpcBasis(data)) {
         if (validateRpcSuccess(data)) {
@@ -70,8 +74,14 @@ async function fetchResponse(request) {
 }
 function makeRpcCall(resource) {
     return async (rpcRequestInput, options = {})=>{
-        const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, createRequest(rpcRequestInput), options)), options.isNotification);
-        if (validateRpcSuccess(rpcResponse)) {
+        const isNotification = options.isNotification;
+        const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, createRequest({
+            ...rpcRequestInput,
+            isNotification
+        }), options)), options.isNotification);
+        if (rpcResponse === undefined) {
+            return rpcResponse;
+        } else if (validateRpcSuccess(rpcResponse)) {
             return rpcResponse.result;
         } else {
             throw rpcResponse.error;
@@ -80,11 +90,28 @@ function makeRpcCall(resource) {
 }
 function makeBatchRpcCall(resource) {
     return async (rpcBatchRequestInput, options = {})=>{
-        const rpcBatchResponse = await fetchResponse(createFetchRequest(resource, rpcBatchRequestInput.map(createRequest), options));
-        if (rpcBatchResponse === undefined && options.isNotification) {
-            return rpcBatchResponse;
+        const isNotification = options.isNotification;
+        const rpcBatchResponse = await fetchResponse(createFetchRequest(resource, rpcBatchRequestInput.map((rpcRequestInput)=>createRequest({
+                ...rpcRequestInput,
+                isNotification
+            })), options));
+        if (isNotification) {
+            if (rpcBatchResponse === undefined) {
+                return rpcBatchResponse;
+            } else {
+                return [
+                    {
+                        jsonrpc: "2.0",
+                        error: {
+                            code: 0,
+                            message: "The batch of notifications contain unexpected data."
+                        },
+                        id: null
+                    }
+                ];
+            }
         } else if (Array.isArray(rpcBatchResponse) && rpcBatchResponse.length > 0) {
-            const validatedRpcBatchResponse = rpcBatchResponse.map((rpcResponse)=>validateResponse(rpcResponse, options.isNotification));
+            const validatedRpcBatchResponse = rpcBatchResponse.map((rpcResponse)=>validateResponse(rpcResponse, isNotification));
             if (options.hasRpcResponseBasis) {
                 return validatedRpcBatchResponse;
             } else {
