@@ -1,7 +1,6 @@
+import { authErrorData } from "./error_data.ts";
 import { type Payload, verify } from "./deps.ts";
 import type { CreationInput } from "./creation.ts";
-
-export const authErrorCode = -32020;
 
 function getJwtFromBearer(headers: Headers): string {
   const authHeader = headers.get("Authorization");
@@ -41,11 +40,10 @@ export async function verifyJwt(
       } catch (err) {
         return {
           validationObject: {
-            code: authErrorCode,
-            message: "Authorization error",
             id: validationObject.id,
             data: options.publicErrorStack ? err.stack : undefined,
             isError: true,
+            ...authErrorData,
           },
           methods,
           options,

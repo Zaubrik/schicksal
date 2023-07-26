@@ -1,2 +1,2 @@
 export * from "./response.ts";
-export { authErrorCode } from "./auth.ts";
+export * from "./error_data.ts";

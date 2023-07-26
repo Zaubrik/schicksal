@@ -1,3 +1,9 @@
+import {
+  invalidParamsErrorData,
+  invalidRequestErrorData,
+  methodNotFoundErrorData,
+  parseErrorData,
+} from "./error_data.ts";
 import { type Methods } from "./response.ts";
 
 import type {
@@ -61,10 +67,9 @@ function tryToParse(json: string) {
     return [JSON.parse(json), null];
   } catch {
     return [null, {
-      code: -32700,
-      message: "Parse error",
       id: null,
       isError: true,
+      ...parseErrorData,
     }];
   }
 }
@@ -101,17 +106,15 @@ export function validateRpcRequestObject(
       };
     } else if (typeof methods[decodedBody.method] !== "function") {
       return {
-        code: -32601,
-        message: "Method not found",
         id: decodedBody.id,
         isError: true,
+        ...methodNotFoundErrorData,
       };
     } else if ("params" in decodedBody && !isRpcParams(decodedBody.params)) {
       return {
-        code: -32602,
-        message: "Invalid params",
         id: decodedBody.id,
         isError: true,
+        ...invalidParamsErrorData,
       };
     } else {
       return {
@@ -123,10 +126,9 @@ export function validateRpcRequestObject(
     }
   } else {
     return {
-      code: -32600,
-      message: "Invalid Request",
       id: null,
       isError: true,
+      ...invalidRequestErrorData,
     };
   }
 }

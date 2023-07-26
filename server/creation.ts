@@ -1,3 +1,4 @@
+import { internalErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
 import { verifyJwt } from "./auth.ts";
 import type { RpcBatchResponse, RpcResponse } from "../rpc_types.ts";
@@ -43,11 +44,10 @@ async function executeMethods(
       };
     }
     return {
-      code: -32603,
-      message: "Internal error",
       id: validationObject.id,
       data: options.publicErrorStack ? err.stack : undefined,
       isError: true,
+      ...internalErrorData,
     };
   }
 }
