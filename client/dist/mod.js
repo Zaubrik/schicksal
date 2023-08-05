@@ -68,9 +68,23 @@ function createFetchRequest(resource, rpcRequestOrBatch, options = {}) {
     });
 }
 async function fetchResponse(request) {
-    const response = await fetch(request);
-    const text = await response.text();
-    return text === "" ? undefined : JSON.parse(text);
+    try {
+        const response = await fetch(request);
+        if (!response.ok) {
+            throw new Error(`Received HTTP status code ${response.status} (${response.statusText}).`);
+        }
+        const text = await response.text();
+        return text === "" ? undefined : JSON.parse(text);
+    } catch (error) {
+        return {
+            jsonrpc: "2.0",
+            error: {
+                code: 0,
+                message: error.message
+            },
+            id: null
+        };
+    }
 }
 function makeRpcCall(resource) {
     return async (rpcRequestInput, options = {})=>{
