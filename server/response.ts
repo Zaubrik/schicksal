@@ -1,30 +1,41 @@
 import { createRpcResponseOrBatch } from "./creation.ts";
 import { validateRequest } from "./validation.ts";
-import type { JsonValue } from "../rpc_types.ts";
-import type { VerifyOptions } from "./deps.ts";
+import { type JsonValue } from "../rpc_types.ts";
+import {
+  type CryptoKeyOrUpdateInput,
+  verifyJwt,
+  type VerifyOptions,
+} from "./deps.ts";
 
 export type Methods = {
   // deno-lint-ignore no-explicit-any
   [method: string]: (...arg: any[]) => JsonValue | Promise<JsonValue>;
 };
 export type Options = {
-  // Add headers to the default header '{"content-type" : "application/json"}':
+  // Add response headers:
   headers?: Headers;
-  // include or don't include server side error messages in response:
+  // Include server side error messages in response:
   publicErrorStack?: boolean;
   // Additional arguments ('payload' is reserved for jwt payload!):
   args?: Record<string, unknown>;
-  // for jwt verification:
+  // Verify JWTs:
   auth?: {
-    key: CryptoKey;
+    input: CryptoKeyOrUpdateInput;
     methods?: (keyof Methods)[] | RegExp;
     options?: VerifyOptions;
   };
 };
+export type AuthData = {
+  headers: Headers;
+  verify?: ReturnType<typeof verifyJwt>;
+};
 
 export function respond(methods: Methods, options: Options = {}) {
+  const verify = options.auth
+    ? verifyJwt(options.auth.input, options.auth.options)
+    : undefined;
   return async (request: Request): Promise<Response> => {
-    const requestHeaders = request.headers;
+    const authData = { verify, headers: request.headers };
     const validationObjectOrBatch = validateRequest(
       await request.text(),
       methods,
@@ -34,7 +45,7 @@ export function respond(methods: Methods, options: Options = {}) {
       validationObjectOrBatch,
       methods,
       options,
-      requestHeaders,
+      authData,
     );
     if (rpcResponseOrBatchOrNull === null) {
       return new Response(null, { status: 204, headers });

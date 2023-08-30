@@ -1,21 +1,11 @@
 import { authErrorData } from "./error_data.ts";
-import { type Payload, verify } from "./deps.ts";
-import type { CreationInput } from "./creation.ts";
+import { getJwtFromBearer, type Payload } from "./deps.ts";
+import { type CreationInput } from "./creation.ts";
+import { type AuthData } from "./response.ts";
 
-function getJwtFromBearer(headers: Headers): string {
-  const authHeader = headers.get("Authorization");
-  if (authHeader === null) {
-    throw new Error("No 'Authorization' header.");
-  } else if (!authHeader.startsWith("Bearer ") || authHeader.length <= 7) {
-    throw new Error("Invalid 'Authorization' header.");
-  } else {
-    return authHeader.slice(7);
-  }
-}
-
-export async function verifyJwt(
-  { validationObject, methods, options, headers }: CreationInput & {
-    headers: Headers;
+export async function verifyJwtForSelectedMethods(
+  { validationObject, methods, options, authData }: CreationInput & {
+    authData: AuthData;
   },
 ): Promise<CreationInput & { payload?: Payload }> {
   if (validationObject.isError) return { validationObject, methods, options };
@@ -27,15 +17,8 @@ export async function verifyJwt(
         : methodsOrUndefined?.test(validationObject.method)
     ) {
       try {
-        if (!(options.auth.key instanceof CryptoKey)) {
-          throw new Error("Authentication requires a CryptoKey.");
-        }
-        const jwt = getJwtFromBearer(headers);
-        const payload = await verify(
-          jwt,
-          options.auth.key,
-          options.auth.options,
-        );
+        const jwt = getJwtFromBearer(authData.headers);
+        const payload = await (await authData.verify!)(jwt);
         return { validationObject, methods, options, payload };
       } catch (err) {
         return {

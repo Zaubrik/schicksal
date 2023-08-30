@@ -1,10 +1,10 @@
 import { internalErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
-import { verifyJwt } from "./auth.ts";
-import type { RpcBatchResponse, RpcResponse } from "../rpc_types.ts";
-import type { ValidationObject } from "./validation.ts";
-import type { Methods, Options } from "./response.ts";
-import type { Payload } from "./deps.ts";
+import { verifyJwtForSelectedMethods } from "./auth.ts";
+import { type RpcBatchResponse, type RpcResponse } from "../rpc_types.ts";
+import { type ValidationObject } from "./validation.ts";
+import { type AuthData, type Methods, type Options } from "./response.ts";
+import { type Payload } from "./deps.ts";
 
 export type CreationInput = {
   validationObject: ValidationObject;
@@ -33,19 +33,19 @@ async function executeMethods(
         ? await method(validationObject.params)
         : await method(validationObject.params, additionalArgument),
     };
-  } catch (err) {
-    if (err instanceof CustomError) {
+  } catch (error) {
+    if (error instanceof CustomError) {
       return {
-        code: err.code,
-        message: err.message,
+        code: error.code,
+        message: error.message,
         id: validationObject.id,
-        data: err.data,
+        data: error.data,
         isError: true,
       };
     }
     return {
       id: validationObject.id,
-      data: options.publicErrorStack ? err.stack : undefined,
+      data: options.publicErrorStack ? error.stack : undefined,
       isError: true,
       ...internalErrorData,
     };
@@ -91,27 +91,27 @@ export async function createRpcResponseOrBatch(
   validationObjectOrBatch: ValidationObject | ValidationObject[],
   methods: Methods,
   options: Options,
-  headers: Headers,
+  authData: AuthData,
 ): Promise<RpcResponseOrBatchOrNull> {
   return Array.isArray(validationObjectOrBatch)
     ? await cleanBatch(
       validationObjectOrBatch.map(async (validationObject) =>
         createRpcResponse(
-          await verifyJwt({
+          await verifyJwtForSelectedMethods({
             validationObject,
             methods,
             options,
-            headers,
+            authData,
           }),
         )
       ),
     )
     : await createRpcResponse(
-      await verifyJwt({
+      await verifyJwtForSelectedMethods({
         validationObject: validationObjectOrBatch,
         methods,
         options,
-        headers,
+        authData,
       }),
     );
 }

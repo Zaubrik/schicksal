@@ -1,5 +1,10 @@
 export {
   type Payload,
-  verify,
   type VerifyOptions,
-} from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+} from "https://dev.zaubrik.com/djwt@v2.9.1/mod.ts";
+
+export {
+  type CryptoKeyOrUpdateInput,
+  getJwtFromBearer,
+  verifyJwt,
+} from "https://dev.zaubrik.com/portal@v0.2.4/functions/mod.ts";

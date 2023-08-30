@@ -6,12 +6,12 @@ import {
 } from "./error_data.ts";
 import { type Methods } from "./response.ts";
 
-import type {
-  JsonArray,
-  JsonObject,
-  JsonValue,
-  RpcId,
-  RpcMethod,
+import {
+  type JsonArray,
+  type JsonObject,
+  type JsonValue,
+  type RpcId,
+  type RpcMethod,
 } from "../rpc_types.ts";
 
 export type ValidationSuccess = {

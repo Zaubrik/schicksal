@@ -33,12 +33,17 @@ const methods = {
   },
 };
 
-const key = await crypto.subtle.generateKey(
+const cryptoKey = await crypto.subtle.generateKey(
   { name: "HMAC", hash: "SHA-384" },
   true,
   ["sign", "verify"],
 );
-const jwt = await create({ alg: "HS384", typ: "JWT" }, { user: "Bob" }, key);
+const algorithm = "HS384" as const;
+const jwt = await create(
+  { alg: algorithm, typ: "JWT" },
+  { user: "Bob" },
+  cryptoKey,
+);
 
 Deno.test("rpc call with positional parameters", async function (): Promise<
   void
@@ -257,7 +262,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
       headers: new Headers({
         "Authorization": `Bearer ${jwt}`,
       }),
-      auth: { key, methods: ["login"] },
+      auth: { input: { cryptoKey, algorithm }, methods: ["login"] },
     })(reqOne)).text(),
     removeWhiteSpace(sentToClient),
   );
@@ -265,7 +270,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   reqTwo.headers.append("Authorization", `Bearer ${jwt.slice(1)}`),
     assertEquals(
       await (await respond(methods, {
-        auth: { key, methods: ["login"] },
+        auth: { input: { cryptoKey, algorithm }, methods: ["login"] },
       })(reqTwo)).text(),
       removeWhiteSpace(
         '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
@@ -277,7 +282,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   reqThree.headers.append("Authorization", `Bearer ${jwt.slice(1)}`);
   assertEquals(
     await (await respond(methods, {
-      auth: { key, methods: new RegExp(".+") },
+      auth: { input: { cryptoKey, algorithm }, methods: new RegExp(".+") },
     })(reqThree)).text(),
     removeWhiteSpace(
       '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
@@ -288,7 +293,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   );
   assertEquals(
     await (await respond(methods, {
-      auth: { key, methods: ["login"] },
+      auth: { input: { cryptoKey, algorithm }, methods: ["login"] },
     })(reqFour)).text(),
     removeWhiteSpace(
       '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',

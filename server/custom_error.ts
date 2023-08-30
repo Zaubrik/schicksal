@@ -1,4 +1,4 @@
-import type { JsonValue } from "../rpc_types.ts";
+import { type JsonValue } from "../rpc_types.ts";
 
 export class CustomError extends Error {
   code: number;
