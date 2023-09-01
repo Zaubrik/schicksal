@@ -34,31 +34,33 @@ export function respond(options: Options = {}) {
   const verify = options.auth
     ? verifyJwt(options.auth.input, options.auth.options)
     : undefined;
-  return async (request: Request, methods: Methods): Promise<Response> => {
-    const authData = { verify, headers: request.headers };
-    const validationObjectOrBatch = validateRequest(
-      await request.text(),
-      methods,
-    );
-    const headers = options.headers ?? new Headers();
-    const rpcResponseOrBatchOrNull = await createRpcResponseOrBatch(
-      validationObjectOrBatch,
-      methods,
-      options,
-      authData,
-    );
-    if (rpcResponseOrBatchOrNull === null) {
-      return new Response(null, { status: 204, headers });
-    } else {
-      headers.append("content-type", "application/json");
-      return new Response(
-        JSON.stringify(rpcResponseOrBatchOrNull),
-        {
-          status: 200,
-          headers,
-        },
+  return (methods: Methods) => {
+    return async (request: Request): Promise<Response> => {
+      const authData = { verify, headers: request.headers };
+      const validationObjectOrBatch = validateRequest(
+        await request.text(),
+        methods,
       );
-    }
+      const headers = options.headers ?? new Headers();
+      const rpcResponseOrBatchOrNull = await createRpcResponseOrBatch(
+        validationObjectOrBatch,
+        methods,
+        options,
+        authData,
+      );
+      if (rpcResponseOrBatchOrNull === null) {
+        return new Response(null, { status: 204, headers });
+      } else {
+        headers.append("content-type", "application/json");
+        return new Response(
+          JSON.stringify(rpcResponseOrBatchOrNull),
+          {
+            status: 200,
+            headers,
+          },
+        );
+      }
+    };
   };
 }
 

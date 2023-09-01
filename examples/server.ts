@@ -1,4 +1,4 @@
-import { respond } from "../server/mod.ts";
+import { makeRpcResponse } from "../server/mod.ts";
 
 function add([a, b]: [number, number]) {
   return a + b;
@@ -22,4 +22,4 @@ const methods = {
 };
 const options = { args: { text: "My name is" } };
 
-Deno.serve(respond(methods, options));
+Deno.serve(makeRpcResponse(methods));
