@@ -53,7 +53,7 @@ const methods = {
 };
 const options = { args: { text: "My name is" } };
 
-Deno.serve(respond(methods, options));
+Deno.serve(respond(options)(methods));
 ```
 
 ## Discord
