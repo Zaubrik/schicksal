@@ -30,11 +30,11 @@ export type AuthData = {
   verify?: ReturnType<typeof verifyJwt>;
 };
 
-export function respond(methods: Methods, options: Options = {}) {
+export function respond(options: Options = {}) {
   const verify = options.auth
     ? verifyJwt(options.auth.input, options.auth.options)
     : undefined;
-  return async (request: Request): Promise<Response> => {
+  return async (request: Request, methods: Methods): Promise<Response> => {
     const authData = { verify, headers: request.headers };
     const validationObjectOrBatch = validateRequest(
       await request.text(),
@@ -61,3 +61,5 @@ export function respond(methods: Methods, options: Options = {}) {
     }
   };
 }
+
+export const makeRpcResponse = respond();
