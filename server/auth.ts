@@ -1,24 +1,26 @@
 import { authErrorData } from "./error_data.ts";
 import { getJwtFromBearer, type Payload } from "./deps.ts";
 import { type CreationInput } from "./creation.ts";
-import { type AuthData } from "./response.ts";
+import { type AuthInput } from "./response.ts";
+
+export type AuthData = AuthInput & { headers: Headers };
 
 export async function verifyJwtForSelectedMethods(
   { validationObject, methods, options, authData }: CreationInput & {
-    authData: AuthData;
+    authData?: AuthData;
   },
 ): Promise<CreationInput & { payload?: Payload }> {
   if (validationObject.isError) return { validationObject, methods, options };
-  if (options.auth) {
-    const methodsOrUndefined = options.auth.methods;
+  if (authData) {
+    const authMethods = authData.methods;
     if (
-      Array.isArray(methodsOrUndefined)
-        ? methodsOrUndefined?.includes(validationObject.method)
-        : methodsOrUndefined?.test(validationObject.method)
+      Array.isArray(authMethods)
+        ? authMethods.includes(validationObject.method)
+        : authMethods?.test(validationObject.method)
     ) {
       try {
         const jwt = getJwtFromBearer(authData.headers);
-        const payload = await (await authData.verify!)(jwt);
+        const payload = await authData.verify(jwt, authData.options);
         return { validationObject, methods, options, payload };
       } catch (err) {
         return {

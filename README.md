@@ -15,6 +15,9 @@ const r2 = await call({
   params: { firstName: "Joe", lastName: "Doe" },
 });
 
+console.log(r1);
+console.log(r2);
+
 const batchCall = makeBatchRpcCall("http://localhost:8000");
 
 const r3 = await batchCall([{
@@ -24,6 +27,8 @@ const r3 = await batchCall([{
   method: "animalsMakeNoise",
   params: ["aaa", "bbb"],
 }, { method: "animalsMakeNoise", params: ["aaa", "bbb"] }]);
+
+console.log(r3);
 ```
 
 ## Server
@@ -39,7 +44,7 @@ function makeName(
   { firstName, lastName }: { firstName: string; lastName: string },
   { text }: { text: string },
 ) {
-  return `${text} ${firstName} ${lastName}`;
+  return `${text || "Hello"} ${firstName} ${lastName}`;
 }
 
 function animalsMakeNoise(noise: string[]) {
@@ -53,8 +58,12 @@ const methods = {
 };
 const options = { args: { text: "My name is" } };
 
-Deno.serve(respond(options)(methods));
+Deno.serve(respond(methods, options));
 ```
+
+## Features
+
+The server allows JWT authorization.
 
 ## Discord
 

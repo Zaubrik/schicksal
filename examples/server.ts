@@ -1,4 +1,4 @@
-import { makeRpcResponse } from "../server/mod.ts";
+import { respond } from "../server/mod.ts";
 
 function add([a, b]: [number, number]) {
   return a + b;
@@ -8,7 +8,7 @@ function makeName(
   { firstName, lastName }: { firstName: string; lastName: string },
   { text }: { text: string },
 ) {
-  return `${text} ${firstName} ${lastName}`;
+  return `${text || "Hello"} ${firstName} ${lastName}`;
 }
 
 function animalsMakeNoise(noise: string[]) {
@@ -22,4 +22,4 @@ const methods = {
 };
 const options = { args: { text: "My name is" } };
 
-Deno.serve(makeRpcResponse(methods));
+Deno.serve(respond(methods, options));

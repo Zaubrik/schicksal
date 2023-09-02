@@ -1,9 +1,9 @@
 import { internalErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
-import { verifyJwtForSelectedMethods } from "./auth.ts";
+import { type AuthData, verifyJwtForSelectedMethods } from "./auth.ts";
 import { type RpcBatchResponse, type RpcResponse } from "../rpc_types.ts";
 import { type ValidationObject } from "./validation.ts";
-import { type AuthData, type Methods, type Options } from "./response.ts";
+import { type Methods, type Options } from "./response.ts";
 import { type Payload } from "./deps.ts";
 
 export type CreationInput = {
@@ -91,7 +91,7 @@ export async function createRpcResponseOrBatch(
   validationObjectOrBatch: ValidationObject | ValidationObject[],
   methods: Methods,
   options: Options,
-  authData: AuthData,
+  authData?: AuthData,
 ): Promise<RpcResponseOrBatchOrNull> {
   return Array.isArray(validationObjectOrBatch)
     ? await cleanBatch(
