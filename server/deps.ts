@@ -7,4 +7,4 @@ export {
   type CryptoKeyOrUpdateInput,
   getJwtFromBearer,
   verifyJwt,
-} from "https://dev.zaubrik.com/portal@v0.2.4/functions/mod.ts";
+} from "https://dev.zaubrik.com/portal@v0.2.5/functions/mod.ts";
