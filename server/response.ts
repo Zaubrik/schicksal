@@ -21,7 +21,7 @@ export type Options = {
 };
 
 type Verify = ReturnType<typeof verifyJwt>;
-type AuthMethodsAndOptions = {
+export type AuthMethodsAndOptions = {
   methods: (keyof Methods)[] | RegExp;
   options?: VerifyOptions;
 };
