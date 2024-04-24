@@ -21,20 +21,29 @@ export type Options = {
 };
 
 type Verify = ReturnType<typeof verifyJwt>;
-export type AuthMethodsAndOptions = {
+export type AuthInput = {
+  verification: VerifyInput;
   methods: (keyof Methods)[] | RegExp;
   options?: VerifyOptions;
 };
-export type AuthInput = AuthMethodsAndOptions & { verify: Verify };
+export type VerifyInput = CryptoKeyOrUpdateInput | Verify;
+export type AuthInputAndVerify = Omit<AuthInput, "verification"> & {
+  verify: Verify;
+};
 
 export function respond(
   methods: Methods,
   options: Options = {},
   authInput?: AuthInput,
 ) {
+  const verify = authInput
+    ? typeof authInput.verification === "function"
+      ? authInput.verification
+      : verifyJwt(authInput.verification)
+    : undefined;
   return async (request: Request): Promise<Response> => {
-    const authData = authInput
-      ? { ...authInput, headers: request.headers }
+    const authData = authInput && verify
+      ? { ...authInput, verify, headers: request.headers }
       : undefined;
     const validationObjectOrBatch = validateRequest(
       await request.text(),
@@ -60,15 +69,4 @@ export function respond(
       );
     }
   };
-}
-
-export function respondWithAuth(
-  cryptoKeyOrUpdateInput: CryptoKeyOrUpdateInput,
-) {
-  const verify = verifyJwt(cryptoKeyOrUpdateInput);
-  return (
-    methods: Methods,
-    authMethodsAndOptions: AuthMethodsAndOptions,
-    options: Options = {},
-  ) => respond(methods, options, { verify, ...authMethodsAndOptions });
 }

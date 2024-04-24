@@ -1,9 +1,9 @@
 import { authErrorData } from "./error_data.ts";
 import { getJwtFromBearer, type Payload } from "./deps.ts";
 import { type CreationInput } from "./creation.ts";
-import { type AuthInput } from "./response.ts";
+import { type AuthInputAndVerify } from "./response.ts";
 
-export type AuthData = AuthInput & { headers: Headers };
+export type AuthData = AuthInputAndVerify & { headers: Headers };
 
 export async function verifyJwtForSelectedMethods(
   { validationObject, methods, options, authData }: CreationInput & {

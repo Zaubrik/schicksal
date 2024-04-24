@@ -1,5 +1,5 @@
 import { assertEquals, create, Payload } from "../test_deps.ts";
-import { respond, respondWithAuth } from "./response.ts";
+import { respond } from "./response.ts";
 import { CustomError } from "./custom_error.ts";
 
 function createReq(str: string) {
@@ -266,7 +266,10 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   const reqTwo = createReq(sentToServer);
   reqTwo.headers.append("Authorization", `Bearer ${jwt.slice(1)}`),
     assertEquals(
-      await (await respondWithAuth(cryptoKey)(methods, { methods: ["login"] })(
+      await (await respond(methods, {}, {
+        methods: ["login"],
+        verification: cryptoKey,
+      })(
         reqTwo,
       )).text(),
       removeWhiteSpace(
@@ -278,7 +281,8 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   );
   reqThree.headers.append("Authorization", `Bearer ${jwt.slice(1)}`);
   assertEquals(
-    await (await respondWithAuth(cryptoKey)(methods, {
+    await (await respond(methods, {}, {
+      verification: cryptoKey,
       methods: new RegExp(".+"),
     })(reqThree)).text(),
     removeWhiteSpace(
@@ -290,7 +294,8 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   );
   reqFour.headers.append("Authorization", `Bearer ${jwt}`);
   assertEquals(
-    await (await respondWithAuth(cryptoKey)(methods, {
+    await (await respond(methods, {}, {
+      verification: cryptoKey,
       methods: ["non-existent"],
     })(reqFour)).text(),
     removeWhiteSpace(
@@ -301,7 +306,8 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
     '{"jsonrpc": "2.0", "method": "login", "params": {"user": "Bob"}, "id": 3}',
   );
   assertEquals(
-    await (await respondWithAuth(cryptoKey)(methods, {
+    await (await respond(methods, {}, {
+      verification: cryptoKey,
       methods: ["login"],
     })(reqFive)).text(),
     removeWhiteSpace(
@@ -311,7 +317,10 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   const reqSix = createReq(sentToServer);
   reqSix.headers.append("Authorization", `Bearer ${jwt}`);
   assertEquals(
-    await (await respondWithAuth(cryptoKey)(methods, { methods: ["login"] })(
+    await (await respond(methods, {}, {
+      verification: cryptoKey,
+      methods: ["login"],
+    })(
       reqSix,
     )).text(),
     removeWhiteSpace(sentToClient),

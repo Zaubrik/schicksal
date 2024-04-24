@@ -5,7 +5,7 @@
 function generateId() {
     return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
 }
-function createRequest({ method , params , isNotification =false , id  }) {
+function createRequest({ method, params, isNotification = false, id }) {
     const rpcRequest = {
         jsonrpc: "2.0",
         method
