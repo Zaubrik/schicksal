@@ -325,4 +325,34 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
     )).text(),
     removeWhiteSpace(sentToClient),
   );
+  const reqSeven = createReq(sentToServer);
+  reqSeven.headers.append("Authorization", `Bearer ${jwt.slice(1)}`),
+    assertEquals(
+      await (await respond(methods, {}, [{
+        methods: ["non-existent"],
+        verification: cryptoKey,
+      }, {
+        methods: ["login"],
+        verification: cryptoKey,
+      }])(
+        reqSeven,
+      )).text(),
+      removeWhiteSpace(
+        '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
+      ),
+    );
+  const reqEight = createReq(sentToServer);
+  reqEight.headers.append("Authorization", `Bearer ${jwt}`),
+    assertEquals(
+      await (await respond(methods, {}, [{
+        methods: ["non-existent"],
+        verification: cryptoKey,
+      }, {
+        methods: ["login"],
+        verification: cryptoKey,
+      }])(
+        reqEight,
+      )).text(),
+      removeWhiteSpace(sentToClient),
+    );
 });

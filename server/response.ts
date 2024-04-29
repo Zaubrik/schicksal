@@ -31,19 +31,27 @@ export type AuthInputAndVerify = Omit<AuthInput, "verification"> & {
   verify: Verify;
 };
 
+function addVerifyFunctions(authInput: AuthInput) {
+  const verify = typeof authInput.verification === "function"
+    ? authInput.verification
+    : verifyJwt(authInput.verification);
+  return { ...authInput, verify };
+}
+
 export function respond(
   methods: Methods,
   options: Options = {},
-  authInput?: AuthInput,
+  authInput: AuthInput | AuthInput[] = [],
 ) {
-  const verify = authInput
-    ? typeof authInput.verification === "function"
-      ? authInput.verification
-      : verifyJwt(authInput.verification)
-    : undefined;
+  const authInputArray = [authInput].flat();
+  const authInputArrayIsNotEmpty = authInputArray.length > 0;
+  const authInputAndVeryifyArray = authInputArray.map(addVerifyFunctions);
   return async (request: Request): Promise<Response> => {
-    const authData = authInput && verify
-      ? { ...authInput, verify, headers: request.headers }
+    const authData = authInputArrayIsNotEmpty
+      ? authInputAndVeryifyArray.map((authInput) => ({
+        ...authInput,
+        headers: request.headers,
+      }))
       : undefined;
     const validationObjectOrBatch = validateRequest(
       await request.text(),
