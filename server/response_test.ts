@@ -255,6 +255,8 @@ Deno.test("rpc call with a custom error", async function (): Promise<
 Deno.test("rpc call with jwt", async function (): Promise<void> {
   const sentToServer = '{"jsonrpc": "2.0", "method": "login", "id": 3}';
   const sentToClient = '{"jsonrpc": "2.0", "result": "Bob", "id": 3}';
+  const authorizationError =
+    '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}';
   const reqOne = createReq(sentToServer);
   reqOne.headers.append("Authorization", `Bearer ${jwt}`);
   assertEquals(
@@ -273,7 +275,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
         reqTwo,
       )).text(),
       removeWhiteSpace(
-        '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
+        authorizationError,
       ),
     );
   const reqThree = createReq(
@@ -286,7 +288,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
       methods: new RegExp(".+"),
     })(reqThree)).text(),
     removeWhiteSpace(
-      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
+      authorizationError,
     ),
   );
   const reqFour = createReq(
@@ -311,7 +313,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
       methods: ["login"],
     })(reqFive)).text(),
     removeWhiteSpace(
-      '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
+      authorizationError,
     ),
   );
   const reqSix = createReq(sentToServer);
@@ -337,9 +339,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
       }])(
         reqSeven,
       )).text(),
-      removeWhiteSpace(
-        '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}',
-      ),
+      removeWhiteSpace(authorizationError),
     );
   const reqEight = createReq(sentToServer);
   reqEight.headers.append("Authorization", `Bearer ${jwt}`),
@@ -354,5 +354,22 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
         reqEight,
       )).text(),
       removeWhiteSpace(sentToClient),
+    );
+  const reqNine = createReq(sentToServer);
+  reqNine.headers.append("Authorization", `Bearer ${jwt}`),
+    assertEquals(
+      await (await respond(methods, {}, [{
+        methods: ["login"],
+        verification: cryptoKey,
+      }, {
+        methods: ["login"],
+        verification: cryptoKey,
+        options: {
+          predicates: [() => false],
+        },
+      }])(
+        reqNine,
+      )).text(),
+      removeWhiteSpace(authorizationError),
     );
 });
