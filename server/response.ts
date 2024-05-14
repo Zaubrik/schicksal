@@ -27,15 +27,15 @@ export type AuthInput = {
   options?: VerifyOptions;
 };
 export type VerifyInput = CryptoKeyOrUpdateInput | Verify;
-export type AuthInputAndVerify = Omit<AuthInput, "verification"> & {
-  verify: Verify;
-};
 
-function addVerifyFunctions(authInput: AuthInput) {
-  const verify = typeof authInput.verification === "function"
-    ? authInput.verification
-    : verifyJwt(authInput.verification);
-  return { ...authInput, verify };
+export function ensureVerify(authInput: AuthInput): AuthInput {
+  const verification = authInput.verification;
+  return {
+    ...authInput,
+    verification: typeof verification === "function"
+      ? verification
+      : verifyJwt(verification),
+  };
 }
 
 export function respond(
@@ -45,7 +45,7 @@ export function respond(
 ) {
   const authInputArray = [authInput].flat();
   const authInputArrayIsNotEmpty = authInputArray.length > 0;
-  const authInputAndVeryifyArray = authInputArray.map(addVerifyFunctions);
+  const authInputAndVeryifyArray = authInputArray.map(ensureVerify);
   return async (request: Request): Promise<Response> => {
     const authData = authInputArrayIsNotEmpty
       ? authInputAndVeryifyArray.map((authInput) => ({

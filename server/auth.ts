@@ -1,17 +1,13 @@
 import { authErrorData } from "./error_data.ts";
-import { getJwtFromBearer, type Payload } from "./deps.ts";
+import { getJwtFromBearer, isArray, isPresent, type Payload } from "./deps.ts";
 import { type CreationInput } from "./creation.ts";
-import { type AuthInputAndVerify } from "./response.ts";
+import { type AuthInput } from "./response.ts";
 import { type ValidationSuccess } from "./validation.ts";
 
-export type AuthData = AuthInputAndVerify & { headers: Headers };
+export type AuthData = AuthInput & { headers: Headers };
 type VerifyJwtForSelectedMethodsReturnType = CreationInput & {
   payload?: Payload;
 };
-
-function isPresent<T>(input: T | undefined | null): input is T {
-  return input !== undefined && input !== null;
-}
 
 export async function verifyJwtForSelectedMethods(
   { validationObject, methods, options, authDataArray }: CreationInput & {
@@ -47,14 +43,21 @@ function processAuthData(
   return async (authData: AuthData) => {
     const authMethods = authData.methods;
     if (
-      Array.isArray(authMethods)
+      isArray(authMethods)
         ? authMethods.includes(validationObject.method)
         : authMethods?.test(validationObject.method)
     ) {
       try {
-        const jwt = getJwtFromBearer(authData.headers);
-        const payload = await authData.verify(jwt, authData.options);
-        return { validationObject, methods, options, payload };
+        const verify = authData.verification;
+        if (typeof verify === "function") {
+          const jwt = getJwtFromBearer(authData.headers);
+          const payload = await verify(jwt, authData.options);
+          return { validationObject, methods, options, payload };
+        } else {
+          throw new Error(
+            "There is no verify function. This error should never happen!",
+          );
+        }
       } catch (err) {
         return {
           validationObject: {

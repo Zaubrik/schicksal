@@ -4,7 +4,7 @@ import { type AuthData, verifyJwtForSelectedMethods } from "./auth.ts";
 import { type RpcBatchResponse, type RpcResponse } from "../rpc_types.ts";
 import { type ValidationObject } from "./validation.ts";
 import { type Methods, type Options } from "./response.ts";
-import { type Payload } from "./deps.ts";
+import { isArray, type Payload } from "./deps.ts";
 
 export type CreationInput = {
   validationObject: ValidationObject;
@@ -93,7 +93,7 @@ export async function createRpcResponseOrBatch(
   options: Options,
   authDataArray?: AuthData[],
 ): Promise<RpcResponseOrBatchOrNull> {
-  return Array.isArray(validationObjectOrBatch)
+  return isArray(validationObjectOrBatch)
     ? await cleanBatch(
       validationObjectOrBatch.map(async (validationObject) =>
         createRpcResponse(

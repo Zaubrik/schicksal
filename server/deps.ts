@@ -8,3 +8,9 @@ export {
   getJwtFromBearer,
   verifyJwt,
 } from "https://dev.zaubrik.com/portal@v0.2.7/functions/mod.ts";
+export {
+  isArray,
+  isFunction,
+  isObject,
+  isPresent,
+} from "https://dev.zaubrik.com/sorcery@v0.1.5/type.js";

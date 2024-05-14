@@ -1,3 +1,4 @@
+import { isArray, isObject } from "./deps.ts";
 import {
   invalidParamsErrorData,
   invalidRequestErrorData,
@@ -53,13 +54,6 @@ function isRpcId(input: unknown): input is RpcId {
     default:
       return false;
   }
-}
-
-// deno-lint-ignore no-explicit-any
-function isObject(obj: unknown): obj is Record<string, any> {
-  return (
-    obj !== null && typeof obj === "object" && Array.isArray(obj) === false
-  );
 }
 
 function tryToParse(json: string) {

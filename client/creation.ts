@@ -1,4 +1,5 @@
 import { RpcRequest } from "../rpc_types.ts";
+import { generateUlid } from "./deps.ts";
 
 export type CreateRequestInput = {
   method: string;
@@ -6,10 +7,6 @@ export type CreateRequestInput = {
   isNotification?: boolean;
   id?: RpcRequest["id"];
 };
-
-function generateId() {
-  return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
-}
 
 export function createRequest(
   { method, params, isNotification = false, id }: CreateRequestInput,
@@ -19,7 +16,7 @@ export function createRequest(
     method,
   };
   params && (rpcRequest.params = params);
-  id = isNotification ? undefined : id !== undefined ? id : generateId();
+  id = isNotification ? undefined : id !== undefined ? id : generateUlid();
   id !== undefined && (rpcRequest.id = id);
   return rpcRequest;
 }
