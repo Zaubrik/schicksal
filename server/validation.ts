@@ -1,4 +1,4 @@
-import { isArray, isObject } from "./deps.ts";
+import { isObject } from "./deps.ts";
 import {
   invalidParamsErrorData,
   invalidRequestErrorData,
