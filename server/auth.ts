@@ -1,5 +1,11 @@
 import { authErrorData } from "./error_data.ts";
-import { getJwtFromBearer, isArray, isPresent, type Payload } from "./deps.ts";
+import {
+  getJwtFromBearer,
+  isArray,
+  isFunction,
+  isPresent,
+  type Payload,
+} from "./deps.ts";
 import { type CreationInput } from "./creation.ts";
 import { type AuthInput } from "./response.ts";
 import { type ValidationSuccess } from "./validation.ts";
@@ -49,7 +55,7 @@ function processAuthData(
     ) {
       try {
         const verify = authData.verification;
-        if (typeof verify === "function") {
+        if (isFunction(verify)) {
           const jwt = getJwtFromBearer(authData.headers);
           const payload = await verify(jwt, authData.options);
           return { validationObject, methods, options, payload };

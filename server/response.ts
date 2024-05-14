@@ -1,11 +1,12 @@
-import { createRpcResponseOrBatch } from "./creation.ts";
-import { validateRequest } from "./validation.ts";
-import { type JsonValue } from "../rpc_types.ts";
 import {
   type CryptoKeyOrUpdateInput,
+  isFunction,
   verifyJwt,
   type VerifyOptions,
 } from "./deps.ts";
+import { createRpcResponseOrBatch } from "./creation.ts";
+import { validateRequest } from "./validation.ts";
+import { type JsonValue } from "../rpc_types.ts";
 
 export type Methods = {
   // deno-lint-ignore no-explicit-any
@@ -32,7 +33,7 @@ export function ensureVerify(authInput: AuthInput): AuthInput {
   const verification = authInput.verification;
   return {
     ...authInput,
-    verification: typeof verification === "function"
+    verification: isFunction(verification)
       ? verification
       : verifyJwt(verification),
   };

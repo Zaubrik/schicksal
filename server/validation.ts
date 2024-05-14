@@ -1,4 +1,4 @@
-import { isObject } from "./deps.ts";
+import { isFunction, isNotNull, isObject, isString } from "./deps.ts";
 import {
   invalidParamsErrorData,
   invalidRequestErrorData,
@@ -36,7 +36,7 @@ function isRpcVersion(input: unknown): input is "2.0" {
 }
 
 function isRpcMethod(input: unknown): input is string {
-  return typeof input === "string" && !input.startsWith("rpc.");
+  return isString(input) && !input.startsWith("rpc.");
 }
 
 export function isRpcParams(input: unknown): input is JsonArray | JsonObject {
@@ -98,7 +98,7 @@ export function validateRpcRequestObject(
         id: isRpcId(decodedBody.id) ? decodedBody.id : null,
         isError: true,
       };
-    } else if (typeof methods[decodedBody.method] !== "function") {
+    } else if (!(isFunction(methods[decodedBody.method]))) {
       return {
         id: decodedBody.id,
         isError: true,
