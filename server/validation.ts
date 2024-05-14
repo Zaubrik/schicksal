@@ -40,7 +40,7 @@ function isRpcMethod(input: unknown): input is string {
 }
 
 export function isRpcParams(input: unknown): input is JsonArray | JsonObject {
-  return typeof input === "object" && input !== null;
+  return typeof input === "object" && isNotNull(input);
 }
 
 function isRpcId(input: unknown): input is RpcId {
