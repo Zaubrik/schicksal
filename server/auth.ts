@@ -1,18 +1,13 @@
 import { authErrorData } from "./error_data.ts";
-import {
-  getJwtFromBearer,
-  isArray,
-  isFunction,
-  isPresent,
-  type Payload,
-} from "./deps.ts";
+import { getJwtFromBearer, isArray, isFunction, isPresent } from "./deps.ts";
+import { type JsonObject } from "../types.ts";
 import { type CreationInput } from "./creation.ts";
 import { type AuthInput } from "./response.ts";
 import { type ValidationSuccess } from "./validation.ts";
 
 export type AuthData = AuthInput & { headers: Headers };
 type VerifyJwtForSelectedMethodsReturnType = CreationInput & {
-  payload?: Payload;
+  payload?: JsonObject;
 };
 
 export async function verifyJwtForSelectedMethods(
@@ -31,9 +26,9 @@ export async function verifyJwtForSelectedMethods(
       item.validationObject && item.validationObject.isError
     );
     if (errorOrUndefined) {
-      return errorOrUndefined as CreationInput & { payload?: Payload };
+      return errorOrUndefined as CreationInput & { payload?: JsonObject };
     } else if (authResults.length > 0) {
-      return authResults[0] as CreationInput & { payload?: Payload };
+      return authResults[0] as CreationInput & { payload?: JsonObject };
     }
   }
   return { validationObject, methods, options };

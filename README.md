@@ -34,7 +34,7 @@ console.log(r3);
 ## Server
 
 ```ts
-import { respond } from "../server/mod.ts";
+import { numberArrayValidator, respond } from "../server/mod.ts";
 
 function add([a, b]: [number, number]) {
   return a + b;
@@ -52,7 +52,7 @@ function animalsMakeNoise(noise: string[]) {
 }
 
 const methods = {
-  add: add,
+  add: { method: add, validation: numberArrayValidator },
   makeName: makeName,
   animalsMakeNoise: animalsMakeNoise,
 };

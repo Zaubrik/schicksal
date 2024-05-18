@@ -17,3 +17,7 @@ export const invalidRequestErrorData = {
  * -32000 to -32099 Reserved for implementation-defined server-errors.
  */
 export const authErrorData = { code: -32020, message: "Authorization error" };
+export const validationErrorData = {
+  code: -32030,
+  message: "Validation error",
+};

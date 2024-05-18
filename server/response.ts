@@ -6,12 +6,8 @@ import {
 } from "./deps.ts";
 import { createRpcResponseOrBatch } from "./creation.ts";
 import { validateRequest } from "./validation.ts";
-import { type JsonValue } from "../rpc_types.ts";
+import { type Methods } from "./method.ts";
 
-export type Methods = {
-  // deno-lint-ignore no-explicit-any
-  [method: string]: (...arg: any[]) => JsonValue | Promise<JsonValue>;
-};
 export type Options = {
   // Add response headers:
   headers?: Headers;

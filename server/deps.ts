@@ -1,8 +1,4 @@
-export {
-  type Payload,
-  type VerifyOptions,
-} from "https://dev.zaubrik.com/djwt@v3.0.2/mod.ts";
-
+export { type VerifyOptions } from "https://dev.zaubrik.com/djwt@v3.0.2/mod.ts";
 export {
   type CryptoKeyOrUpdateInput,
   getJwtFromBearer,
@@ -16,3 +12,4 @@ export {
   isPresent,
   isString,
 } from "https://dev.zaubrik.com/sorcery@v0.1.5/type.js";
+export { type Type } from "https://deno.land/x/valita@v0.3.8/mod.ts";

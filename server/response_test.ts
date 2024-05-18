@@ -1,6 +1,8 @@
-import { assertEquals, create, Payload } from "../test_deps.ts";
+import { assertEquals, create } from "../test_deps.ts";
+import { type JsonObject } from "../types.ts";
 import { respond } from "./response.ts";
 import { CustomError } from "./custom_error.ts";
+import { numberArrayValidator } from "../server/util.ts";
 
 function createReq(str: string) {
   return new Request("http://0.0.0.0:8000", { body: str, method: "POST" });
@@ -8,6 +10,10 @@ function createReq(str: string) {
 
 function removeWhiteSpace(str: string) {
   return JSON.stringify(JSON.parse(str));
+}
+
+function add([a, b]: [number, number]) {
+  return a + b;
 }
 
 const methods = {
@@ -28,9 +34,10 @@ const methods = {
       "details": "error details",
     });
   },
-  login: (_: unknown, { payload }: { payload: Payload }) => {
+  login: (_: unknown, { payload }: { payload: JsonObject }) => {
     return payload.user as string;
   },
+  add: { method: add, validation: numberArrayValidator },
 };
 
 const cryptoKey = await crypto.subtle.generateKey(
@@ -235,6 +242,32 @@ Deno.test("rpc call with publicErrorStack set to true", async function (): Promi
       })(createReq(sentToServer))).text(),
     ).error.data,
     "string",
+  );
+});
+
+Deno.test("rpc call with validation", async function (): Promise<
+  void
+> {
+  const sentToServer =
+    '{"jsonrpc": "2.0", "method": "add", "params": [10, 20], "id": 1}';
+  const sentToClient = '{"jsonrpc":"2.0","result":30,"id":1}';
+
+  assertEquals(
+    await (await respond(methods)(createReq(sentToServer))).text(),
+    removeWhiteSpace(sentToClient),
+  );
+});
+Deno.test("rpc call with failed validation", async function (): Promise<
+  void
+> {
+  const sentToServer =
+    '{"jsonrpc": "2.0", "method": "add", "params": [10, "invalid"], "id": 1}';
+  const sentToClient =
+    '{"jsonrpc":"2.0","error":{"code":-32030,"message":"Validation error"},"id":1}';
+
+  assertEquals(
+    await (await respond(methods)(createReq(sentToServer))).text(),
+    removeWhiteSpace(sentToClient),
   );
 });
 

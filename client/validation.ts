@@ -3,7 +3,7 @@ import type {
   RpcResponse,
   RpcResponseBasis,
   RpcSuccess,
-} from "../rpc_types.ts";
+} from "../types.ts";
 
 // deno-lint-ignore no-explicit-any
 function validateRpcBasis(data: any): data is RpcResponseBasis {

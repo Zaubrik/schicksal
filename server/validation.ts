@@ -5,15 +5,14 @@ import {
   methodNotFoundErrorData,
   parseErrorData,
 } from "./error_data.ts";
-import { type Methods } from "./response.ts";
-
+import { type Methods } from "./method.ts";
 import {
   type JsonArray,
   type JsonObject,
   type JsonValue,
   type RpcId,
   type RpcMethod,
-} from "../rpc_types.ts";
+} from "../types.ts";
 
 export type ValidationSuccess = {
   isError: false;
@@ -98,7 +97,11 @@ export function validateRpcRequestObject(
         id: isRpcId(decodedBody.id) ? decodedBody.id : null,
         isError: true,
       };
-    } else if (!(isFunction(methods[decodedBody.method]))) {
+    } else if (
+      !(isFunction(methods[decodedBody.method]) ||
+        // deno-lint-ignore no-explicit-any
+        isFunction((methods[decodedBody.method] as any)?.method))
+    ) {
       return {
         id: decodedBody.id,
         isError: true,

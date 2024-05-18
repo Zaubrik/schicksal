@@ -1,4 +1,4 @@
-import { RpcRequest } from "../rpc_types.ts";
+import { RpcRequest } from "../types.ts";
 import { generateUlid } from "./deps.ts";
 
 export type CreateRequestInput = {

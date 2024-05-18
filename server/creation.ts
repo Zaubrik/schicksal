@@ -1,10 +1,15 @@
-import { internalErrorData } from "./error_data.ts";
+import { internalErrorData, validationErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
 import { type AuthData, verifyJwtForSelectedMethods } from "./auth.ts";
-import { type RpcBatchResponse, type RpcResponse } from "../rpc_types.ts";
+import {
+  type JsonObject,
+  type RpcBatchResponse,
+  type RpcResponse,
+} from "../types.ts";
 import { type ValidationObject } from "./validation.ts";
-import { type Methods, type Options } from "./response.ts";
-import { isArray, type Payload } from "./deps.ts";
+import { type Options } from "./response.ts";
+import { type Methods } from "./method.ts";
+import { isArray } from "./deps.ts";
 
 export type CreationInput = {
   validationObject: ValidationObject;
@@ -20,18 +25,36 @@ type RpcBatchResponseOrNull = RpcBatchResponse | null;
 
 async function executeMethods(
   { validationObject, methods, options, payload }: CreationInput & {
-    payload?: Payload;
+    payload?: JsonObject;
   },
 ): Promise<ValidationObject> {
   if (validationObject.isError) return validationObject;
   try {
-    const additionalArgument = { ...options.args, payload };
-    const method = methods[validationObject.method];
+    const params = validationObject.params;
+    const additionalArgument = payload
+      ? { ...options.args, payload }
+      : { ...options.args };
+    const methodOrObject = methods[validationObject.method];
+    const { method, validation } = typeof methodOrObject === "function"
+      ? { method: methodOrObject, validation: null }
+      : methodOrObject;
+    if (validation) {
+      try {
+        validation.parse(params);
+      } catch (error) {
+        return {
+          id: validationObject.id,
+          data: error.data,
+          isError: true,
+          ...validationErrorData,
+        };
+      }
+    }
     return {
       ...validationObject,
       result: Object.keys(additionalArgument).length === 0
-        ? await method(validationObject.params)
-        : await method(validationObject.params, additionalArgument),
+        ? await method(params)
+        : await method(params, additionalArgument),
     };
   } catch (error) {
     if (error instanceof CustomError) {
@@ -54,7 +77,7 @@ async function executeMethods(
 
 async function createRpcResponse(
   { validationObject, methods, options, payload }: CreationInput & {
-    payload?: Payload;
+    payload?: JsonObject;
   },
 ): Promise<RpcResponseOrNull> {
   const obj: ValidationObject = await executeMethods(

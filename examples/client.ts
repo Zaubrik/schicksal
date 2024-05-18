@@ -7,13 +7,18 @@ const r2 = await call({
   method: "makeName",
   params: { firstName: "Joe", lastName: "Doe" },
 });
+const r3 = await call({
+  method: "add",
+  params: [1, 10],
+});
 
 console.log(r1);
 console.log(r2);
+console.log(r3);
 
 const batchCall = makeBatchRpcCall("http://localhost:8000");
 
-const r3 = await batchCall([{
+const r4 = await batchCall([{
   method: "animalsMakeNoise",
   params: ["aaa", "bbb"],
 }, {
@@ -21,4 +26,4 @@ const r3 = await batchCall([{
   params: ["aaa", "bbb"],
 }, { method: "animalsMakeNoise", params: ["aaa", "bbb"] }]);
 
-console.log(r3);
+console.log(r4);
