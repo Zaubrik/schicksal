@@ -93,25 +93,29 @@ export function respondByHandlingFormData(
   return async (request: Request): Promise<Response> => {
     const headers = options.headers ?? new Headers();
     if (request.headers.get("content-type")?.includes("multipart/form-data")) {
-      const formData = await request.formData();
-      const rpcRequestString = formData.get("rpc")?.toString();
-      if (rpcRequestString) {
-        const newRequest = createNewRpcRequest(request, rpcRequestString);
-        const blobs: Record<string, Blob> = {};
-        formData.forEach((value, key) => {
-          if (key !== "rpc") {
-            blobs[key] = value as Blob;
-          }
-        });
-        const updatedOptions = {
-          ...options,
-          acceptFormData: false,
-          args: { ...options.args, blobs },
-        };
-        return await respond(methods, updatedOptions, authInput)(
-          newRequest,
-        );
-      } else {
+      try {
+        const formData = await request.formData();
+        const rpcRequestString = formData.get("rpc")?.toString();
+        if (rpcRequestString) {
+          const newRequest = createNewRpcRequest(request, rpcRequestString);
+          const blobs: Record<string, Blob> = {};
+          formData.forEach((value, key) => {
+            if (key !== "rpc") {
+              blobs[key] = value as Blob;
+            }
+          });
+          const updatedOptions = {
+            ...options,
+            acceptFormData: false,
+            args: { ...options.args, blobs },
+          };
+          return await respond(methods, updatedOptions, authInput)(
+            newRequest,
+          );
+        } else {
+          throw new Error();
+        }
+      } catch {
         headers.append("content-type", "application/json");
         return new Response(
           JSON.stringify({
