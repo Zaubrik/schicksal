@@ -1,3 +1,5 @@
+import { isArray, isFunction, isString } from "./deps.ts";
+import { callMethodInWorker, isMethodObjectWithWorkerUrl } from "./worker.ts";
 import { internalErrorData, validationErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
 import { type AuthData, verifyJwtForSelectedMethods } from "./auth.ts";
@@ -9,7 +11,6 @@ import {
 import { type ValidationObject } from "./validation.ts";
 import { type Options } from "./response.ts";
 import { type Methods } from "./method.ts";
-import { isArray } from "./deps.ts";
 
 export type CreationInput = {
   validationObject: ValidationObject;
@@ -23,7 +24,7 @@ export type RpcResponseOrBatchOrNull =
 type RpcResponseOrNull = RpcResponse | null;
 type RpcBatchResponseOrNull = RpcBatchResponse | null;
 
-async function executeMethods(
+export async function executeMethods(
   { validationObject, methods, options, payload }: CreationInput & {
     payload?: JsonObject;
   },
@@ -35,7 +36,7 @@ async function executeMethods(
       ? { ...options.args, payload }
       : { ...options.args };
     const methodOrObject = methods[validationObject.method];
-    const { method, validation } = typeof methodOrObject === "function"
+    const { method, validation } = isFunction(methodOrObject)
       ? { method: methodOrObject, validation: null }
       : methodOrObject;
     if (validation) {
@@ -50,11 +51,19 @@ async function executeMethods(
         };
       }
     }
+    const result = isMethodObjectWithWorkerUrl(methodOrObject)
+      ? await callMethodInWorker({
+        workerUrl: methodOrObject.workerUrl,
+        method,
+        params,
+        options: { ...options, args: additionalArgument },
+      })
+      : Object.keys(additionalArgument).length === 0
+      ? await method(params)
+      : await method(params, additionalArgument);
     return {
       ...validationObject,
-      result: Object.keys(additionalArgument).length === 0
-        ? await method(params)
-        : await method(params, additionalArgument),
+      result,
     };
   } catch (error) {
     if (error instanceof CustomError) {
@@ -68,7 +77,9 @@ async function executeMethods(
     }
     return {
       id: validationObject.id,
-      data: options.publicErrorStack ? error.stack : undefined,
+      data: options.publicErrorStack
+        ? isString(error.stack) ? error.stack : "non-error thrown"
+        : undefined,
       isError: true,
       ...internalErrorData,
     };

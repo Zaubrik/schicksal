@@ -21,3 +21,7 @@ export const validationErrorData = {
   code: -32030,
   message: "Validation error",
 };
+export const formDataErrorData = {
+  code: -32040,
+  message: "Invalid formData object",
+};

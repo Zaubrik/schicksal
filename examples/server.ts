@@ -1,25 +1,21 @@
+import { ensureSymlinkedDataDirectorySync } from "./deps.ts";
 import { numberArrayValidator, respond } from "../server/mod.ts";
+import { add, animalsMakeNoise, makeName } from "./methods.ts";
 
-function add([a, b]: [number, number]) {
-  return a + b;
-}
-
-function makeName(
-  { firstName, lastName }: { firstName: string; lastName: string },
-  { text }: { text: string },
-) {
-  return `${text || "Hello"} ${firstName} ${lastName}`;
-}
-
-function animalsMakeNoise(noise: string[]) {
-  return noise.map((el) => el.toUpperCase()).join(" ");
-}
-
-const methods = {
-  add: { method: add, validation: numberArrayValidator },
+export const methods = {
+  add: {
+    method: add,
+    validation: numberArrayValidator,
+    workerUrl: "./workers/call.ts",
+  },
   makeName: makeName,
   animalsMakeNoise: animalsMakeNoise,
 };
-const options = { args: { text: "My name is" } };
+const options = {
+  publicErrorStack: true,
+  workerLog: ensureSymlinkedDataDirectorySync("server.localhost") +
+    "/worker.log",
+  args: { text: "My name is" },
+};
 
 Deno.serve(respond(methods, options));

@@ -115,17 +115,29 @@ function validateResponse(data, isNotification) {
         id: null
     };
 }
-function createFetchRequest(resource, rpcRequestOrBatch, options = {}) {
+function createFetchRequest(resource, body, options = {}) {
     const headers = options.headers ? options.headers : new Headers();
-    headers.set("Content-Type", "application/json");
     if (options.jwt) {
         headers.set("Authorization", `Bearer ${options.jwt}`);
     }
-    return new Request(resource, {
+    const request = new Request(resource, {
         headers,
-        body: JSON.stringify(rpcRequestOrBatch),
+        body,
         method: "POST"
     });
+    console.log("contentType:", request.headers.get("Content-Type"), body instanceof FormData, "ww");
+    const contentType = request.headers.get("Content-Type") || "";
+    if (body instanceof FormData) {
+        if (!contentType.startsWith("multipart/form-data")) {
+            throw new Error("Invalid Content-Type header. The client must set it automatically.");
+        }
+    } else {
+        if (!contentType.startsWith("application/json")) {
+            request.headers.set("Content-Type", "application/json");
+        }
+    }
+    console.log("contentType:", request.headers.get("Content-Type"), body instanceof FormData);
+    return request;
 }
 async function fetchResponse(request) {
     try {
@@ -149,10 +161,10 @@ async function fetchResponse(request) {
 function makeRpcCall(resource) {
     return async (rpcRequestInput, options = {})=>{
         const isNotification = options.isNotification;
-        const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, createRequest({
+        const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, JSON.stringify(createRequest({
             ...rpcRequestInput,
             isNotification
-        }), options)), options.isNotification);
+        })), options)), options.isNotification);
         if (rpcResponse === undefined) {
             return rpcResponse;
         } else if (validateRpcSuccess(rpcResponse)) {
@@ -165,10 +177,10 @@ function makeRpcCall(resource) {
 function makeBatchRpcCall(resource) {
     return async (rpcBatchRequestInput, options = {})=>{
         const isNotification = options.isNotification;
-        const rpcBatchResponse = await fetchResponse(createFetchRequest(resource, rpcBatchRequestInput.map((rpcRequestInput)=>createRequest({
+        const rpcBatchResponse = await fetchResponse(createFetchRequest(resource, JSON.stringify(rpcBatchRequestInput.map((rpcRequestInput)=>createRequest({
                 ...rpcRequestInput,
                 isNotification
-            })), options));
+            }))), options));
         if (isNotification) {
             if (rpcBatchResponse === undefined) {
                 return rpcBatchResponse;
@@ -205,7 +217,30 @@ function makeBatchRpcCall(resource) {
         }
     };
 }
+function makeRpcCallWithFormData(resource) {
+    return async (rpcRequestInput, files, options = {})=>{
+        const isNotification = options.isNotification;
+        const formData = new FormData();
+        const rpcRequest = createRequest({
+            ...rpcRequestInput,
+            isNotification
+        });
+        formData.append("rpc", JSON.stringify(rpcRequest));
+        for (const [key, file] of Object.entries(files)){
+            formData.append(key, file);
+        }
+        const rpcResponse = validateResponse(await fetchResponse(createFetchRequest(resource, formData, options)), options.isNotification);
+        if (rpcResponse === undefined) {
+            return rpcResponse;
+        } else if (validateRpcSuccess(rpcResponse)) {
+            return rpcResponse.result;
+        } else {
+            throw rpcResponse.error;
+        }
+    };
+}
 export { createFetchRequest as createFetchRequest };
 export { makeRpcCall as makeRpcCall };
 export { makeBatchRpcCall as makeBatchRpcCall };
+export { makeRpcCallWithFormData as makeRpcCallWithFormData };
 

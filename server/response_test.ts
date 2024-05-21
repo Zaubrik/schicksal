@@ -1,6 +1,6 @@
 import { assertEquals, create } from "../test_deps.ts";
 import { type JsonObject } from "../types.ts";
-import { respond } from "./response.ts";
+import { type Options, respond } from "./response.ts";
 import { CustomError } from "./custom_error.ts";
 import { numberArrayValidator } from "../server/util.ts";
 
@@ -14,6 +14,18 @@ function removeWhiteSpace(str: string) {
 
 function add([a, b]: [number, number]) {
   return a + b;
+}
+
+// Mock method for testing
+function mockMethod(
+  // deno-lint-ignore no-explicit-any
+  params: Record<string, any>,
+  args: { blobs: Record<string, Blob> },
+) {
+  return {
+    params,
+    blobs: Object.keys(args.blobs).map((key) => args.blobs[key].type),
+  };
 }
 
 const methods = {
@@ -38,6 +50,7 @@ const methods = {
     return payload.user as string;
   },
   add: { method: add, validation: numberArrayValidator },
+  upload: mockMethod,
 };
 
 const cryptoKey = await crypto.subtle.generateKey(
@@ -405,4 +418,46 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
       )).text(),
       removeWhiteSpace(authorizationError),
     );
+});
+
+Deno.test("respondByHandlingFormData handles form-data requests correctly", async () => {
+  const options: Options = { acceptFormData: true };
+  const fileContent = "file content";
+  const file = new File([fileContent], "test.txt", { type: "text/plain" });
+
+  const formData = new FormData();
+  formData.append(
+    "rpc",
+    JSON.stringify({ jsonrpc: "2.0", method: "upload", id: "10" }),
+  );
+  formData.append("file1", file);
+  const request = new Request("http://localhost", {
+    method: "POST",
+    body: formData,
+  });
+
+  const responseHandler = respond(methods, options);
+  const response = await responseHandler(request);
+  const responseBody = await response.json();
+
+  assertEquals(response.status, 200);
+  assertEquals(responseBody.jsonrpc, "2.0");
+  assertEquals(responseBody.result.blobs, ["text/plain"]);
+});
+
+Deno.test("respondByHandlingFormData returns error for missing rpc field", async () => {
+  const options: Options = { acceptFormData: true };
+  const formData = new FormData();
+  const request = new Request("http://localhost", {
+    method: "POST",
+    body: formData,
+  });
+
+  const responseHandler = respond(methods, options);
+  const response = await responseHandler(request);
+  const responseBody = await response.json();
+
+  assertEquals(response.status, 200);
+  assertEquals(responseBody.jsonrpc, "2.0");
+  assertEquals(responseBody.error.code, -32040);
 });
