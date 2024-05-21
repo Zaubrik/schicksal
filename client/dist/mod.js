@@ -125,7 +125,6 @@ function createFetchRequest(resource, body, options = {}) {
         body,
         method: "POST"
     });
-    console.log("contentType:", request.headers.get("Content-Type"), body instanceof FormData, "ww");
     const contentType = request.headers.get("Content-Type") || "";
     if (body instanceof FormData) {
         if (!contentType.startsWith("multipart/form-data")) {
@@ -136,7 +135,6 @@ function createFetchRequest(resource, body, options = {}) {
             request.headers.set("Content-Type", "application/json");
         }
     }
-    console.log("contentType:", request.headers.get("Content-Type"), body instanceof FormData);
     return request;
 }
 async function fetchResponse(request) {
