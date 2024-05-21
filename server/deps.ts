@@ -4,8 +4,7 @@ export {
   getJwtFromBearer,
   logTo,
   verifyJwt,
-} from "../../portal/mod.ts";
-// } from "https://dev.zaubrik.com/portal@v0.2.7/functions/mod.ts";
+} from "https://dev.zaubrik.com/portal@v0.2.7/functions/mod.ts";
 export {
   isArray,
   isFunction,
