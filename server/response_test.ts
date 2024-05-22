@@ -2,7 +2,7 @@ import { assertEquals, create } from "../test_deps.ts";
 import { type JsonObject } from "../types.ts";
 import { type Options, respond } from "./response.ts";
 import { CustomError } from "./custom_error.ts";
-import { numberArrayValidator } from "../server/util.ts";
+import { numberArrayValidator } from "../helpers/server/validation.ts";
 
 function createReq(str: string) {
   return new Request("http://0.0.0.0:8000", { body: str, method: "POST" });
@@ -276,7 +276,7 @@ Deno.test("rpc call with failed validation", async function (): Promise<
   const sentToServer =
     '{"jsonrpc": "2.0", "method": "add", "params": [10, "invalid"], "id": 1}';
   const sentToClient =
-    '{"jsonrpc":"2.0","error":{"code":-32030,"message":"Validation error"},"id":1}';
+    '{"jsonrpc":"2.0","error":{"code":-32030,"message":"Failed params validation","data":{"ok":false,"code":"invalid_type","expected":["number"],"path":[1]}},"id":1}';
 
   assertEquals(
     await (await respond(methods)(createReq(sentToServer))).text(),
@@ -302,7 +302,7 @@ Deno.test("rpc call with jwt", async function (): Promise<void> {
   const sentToServer = '{"jsonrpc": "2.0", "method": "login", "id": 3}';
   const sentToClient = '{"jsonrpc": "2.0", "result": "Bob", "id": 3}';
   const authorizationError =
-    '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Authorization error"}, "id": 3}';
+    '{"jsonrpc": "2.0", "error": {"code": -32020, "message": "Failed authorization"}, "id": 3}';
   const reqOne = createReq(sentToServer);
   reqOne.headers.append("Authorization", `Bearer ${jwt}`);
   assertEquals(

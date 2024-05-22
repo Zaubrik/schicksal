@@ -7,6 +7,7 @@ export {
 } from "https://dev.zaubrik.com/portal@v0.2.7/functions/mod.ts";
 export {
   isArray,
+  isDefined,
   isFunction,
   isNotNull,
   isObject,
@@ -14,4 +15,5 @@ export {
   isString,
   isUrl,
 } from "https://dev.zaubrik.com/sorcery@v0.1.5/type.js";
+export { tryToParse } from "https://dev.zaubrik.com/sorcery@v0.1.5/encoding/json.js";
 export { type Type } from "https://deno.land/x/valita@v0.3.8/mod.ts";

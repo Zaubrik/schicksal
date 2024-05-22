@@ -1,5 +1,9 @@
-import { v } from "./util_deps.ts";
-import { type JsonArray, type JsonObject, type JsonValue } from "../types.ts";
+import { v } from "./deps.ts";
+import {
+  type JsonArray,
+  type JsonObject,
+  type JsonValue,
+} from "../../types.ts";
 
 export type StringOrNull = string | null;
 export type NumberOrNull = number | null;

@@ -1,4 +1,11 @@
-import { isFunction, isNotNull, isObject, isString } from "./deps.ts";
+import {
+  isFunction,
+  isNotNull,
+  isObject,
+  isString,
+  tryToParse,
+  type Type,
+} from "./deps.ts";
 import {
   invalidParamsErrorData,
   invalidRequestErrorData,
@@ -55,28 +62,22 @@ function isRpcId(input: unknown): input is RpcId {
   }
 }
 
-function tryToParse(json: string) {
-  try {
-    return [JSON.parse(json), null];
-  } catch {
-    return [null, {
-      id: null,
-      isError: true,
-      ...parseErrorData,
-    }];
-  }
-}
-
 export function validateRequest(
   body: string,
   methods: Methods,
 ): ValidationObject | ValidationObject[] {
-  const [decodedBody, parsingError] = tryToParse(body);
-  if (parsingError) return parsingError;
-  if (Array.isArray(decodedBody) && decodedBody.length > 0) {
-    return decodedBody.map((rpc) => validateRpcRequestObject(rpc, methods));
+  const { value, error } = tryToParse(body);
+  if (error) {
+    return {
+      id: null,
+      isError: true,
+      ...parseErrorData,
+    };
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map((rpc) => validateRpcRequestObject(rpc, methods));
   } else {
-    return validateRpcRequestObject(decodedBody, methods);
+    return validateRpcRequestObject(value, methods);
   }
 }
 
@@ -128,4 +129,52 @@ export function validateRpcRequestObject(
       ...invalidRequestErrorData,
     };
   }
+}
+
+export interface IssueTree {
+  ok: boolean;
+  code: string;
+  expected: string[];
+  key?: string;
+  tree?: IssueTree;
+  path?: string[];
+}
+
+export function extractErrorPath(issueTree: IssueTree) {
+  const path = issueTree.path || [];
+  if (issueTree.key !== undefined) {
+    path.push(issueTree.key);
+  }
+  const tree = issueTree.tree;
+  if (isObject(tree)) {
+    return extractErrorPath({ ...tree, path });
+  }
+  return { ...issueTree, path };
+}
+
+// deno-lint-ignore no-explicit-any
+export function validateInput(valitaObject: Type<any>) {
+  return (input: unknown) => {
+    try {
+      const value = valitaObject.parse(input);
+      return {
+        value,
+        kind: "success",
+      };
+    } catch (error) {
+      const treeResult = extractErrorPath(
+        // deno-lint-ignore no-explicit-any
+        (error as any).issueTree as IssueTree,
+      );
+      return {
+        error: treeResult as {
+          ok: Required<IssueTree>["ok"];
+          code: Required<IssueTree>["code"];
+          expected: Required<IssueTree>["expected"];
+          path: Required<IssueTree>["path"];
+        },
+        kind: "failure",
+      };
+    }
+  };
 }

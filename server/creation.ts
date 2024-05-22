@@ -1,4 +1,4 @@
-import { isArray, isFunction, isString } from "./deps.ts";
+import { isArray, isDefined, isFunction, isString } from "./deps.ts";
 import { callMethodInWorker, isMethodObjectWithWorkerUrl } from "./worker.ts";
 import { internalErrorData, validationErrorData } from "./error_data.ts";
 import { CustomError } from "./custom_error.ts";
@@ -8,7 +8,7 @@ import {
   type RpcBatchResponse,
   type RpcResponse,
 } from "../types.ts";
-import { type ValidationObject } from "./validation.ts";
+import { validateInput, type ValidationObject } from "./validation.ts";
 import { type Options } from "./response.ts";
 import { type Methods } from "./method.ts";
 
@@ -40,12 +40,11 @@ export async function executeMethods(
       ? { method: methodOrObject, validation: null }
       : methodOrObject;
     if (validation) {
-      try {
-        validation.parse(params);
-      } catch (error) {
+      const { error } = validateInput(validation)(params);
+      if (error) {
         return {
           id: validationObject.id,
-          data: error.data,
+          data: error,
           isError: true,
           ...validationErrorData,
         };
@@ -71,7 +70,11 @@ export async function executeMethods(
         code: error.code,
         message: error.message,
         id: validationObject.id,
-        data: error.data,
+        data: isDefined(error.data)
+          ? error.data
+          : options.publicErrorStack
+          ? error.stack
+          : undefined,
         isError: true,
       };
     }

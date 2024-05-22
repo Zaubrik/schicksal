@@ -1,6 +1,7 @@
 import { ensureSymlinkedDataDirectorySync } from "./deps.ts";
-import { numberArrayValidator, respond } from "../server/mod.ts";
+import { respond } from "../server/mod.ts";
 import { add, animalsMakeNoise, makeName } from "./methods.ts";
+import { numberArrayValidator } from "../helpers/server/validation.ts";
 
 export const methods = {
   add: {
